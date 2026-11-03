@@ -1,10 +1,11 @@
 import { BATCH3_PROMPTS } from "./prompts-batch3";
 import { BATCH4_PROMPTS } from "./prompts-batch4";
+import { BATCH5_PROMPTS } from "./prompts-batch5";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -95,10 +96,28 @@ export const DAYS: string[][] = [
     "nfl-and-mlb",
     "dunk-contest",
   ],
+  [
+    "elite-eight",
+    "f1-circuits",
+    "darts-champs",
+    "penalties",
+    "ws-mvp",
+    "open-champs",
+    "rwc-nations",
+  ],
+  [
+    "cat-schools",
+    "daytona-500",
+    "snooker-champs",
+    "dropped-olympic",
+    "mnf-broadcasters",
+    "us-open-champs",
+    "cricket-positions",
+  ],
 ];
 
 /** Prompts built but not yet in a day. */
-export const BANKED: string[] = [];
+export const BANKED: string[] = ["bowl-games", "rivalry-trophies", "horseback-sports", "pga-champs"];
 
 export function promptsForSet(set: number): string[] {
   return DAYS[((set % DAYS.length) + DAYS.length) % DAYS.length];
