@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-n
 
 import { PixelButton, PixelTitle, Scanlines } from "@/components/ui";
 import { TIERS, TIER_ORDER } from "@/data/types";
-import { ANSWER_SECONDS, gameNumber, loadGame, loadStreak, todayET } from "@/lib/game";
+import { ANSWER_SECONDS, UNLIMITED_PLAY, gameNumber, loadGame, loadStreak, todayET } from "@/lib/game";
 import { C, F } from "@/theme";
 
 // Fixed star positions so the sky looks the same every load
@@ -73,7 +73,8 @@ export default function Home() {
     }, [day]),
   );
 
-  const label = status === "done" ? "▶ SEE TODAY'S RESULTS" : status === "playing" ? "▶ RESUME TODAY'S GAME" : "▶ PLAY TODAY'S GAME";
+  const replay = UNLIMITED_PLAY && status === "done";
+  const label = replay ? "▶ PLAY AGAIN" : status === "done" ? "▶ SEE TODAY'S RESULTS" : status === "playing" ? "▶ RESUME TODAY'S GAME" : "▶ PLAY TODAY'S GAME";
 
   return (
     <View style={{ flex: 1, backgroundColor: C.night }}>
@@ -118,7 +119,7 @@ export default function Home() {
               </View>
             )}
 
-            <PixelButton big size={narrow ? 13 : undefined} label={label} onPress={() => router.push("/play")} style={{ marginTop: 18 }} />
+            <PixelButton big size={narrow ? 13 : undefined} label={label} onPress={() => router.push(replay ? "/play?reset=1" : "/play")} style={{ marginTop: 18 }} />
 
             <View style={styles.footer}>
               <Text style={styles.footText}>

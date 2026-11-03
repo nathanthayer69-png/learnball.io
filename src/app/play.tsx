@@ -11,6 +11,7 @@ import { TIERS } from "@/data/types";
 import {
   ANSWER_SECONDS,
   MAX_SCORE,
+  UNLIMITED_PLAY,
   READ_SECONDS,
   REVEAL_MS,
   clearGame,
@@ -338,6 +339,7 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
           </View>
 
           <PixelButton big label={copied ? "COPIED! ✓" : "COPY RESULT"} onPress={copy} style={{ marginTop: 22 }} />
+          {UNLIMITED_PLAY && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
 
           <View style={{ marginTop: 24, gap: 12 }}>
             {game.results.map((r, i) => {
@@ -360,11 +362,11 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
             })}
           </View>
 
-          <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>
-          <PixelButton label="◀ HOME" onPress={onHome} style={{ marginTop: 14 }} />
-          <Text style={styles.replay} onPress={onReplay}>
-            testing only: replay today's game
-          </Text>
+          {!UNLIMITED_PLAY && <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>}
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
+            <PixelButton label="◀ HOME" onPress={onHome} style={{ flex: 1 }} />
+            {UNLIMITED_PLAY && <PixelButton label="PLAY AGAIN ▶" onPress={onReplay} style={{ flex: 1 }} />}
+          </View>
         </View>
       </ScrollView>
       <Scanlines />
@@ -405,5 +407,4 @@ const styles = StyleSheet.create({
   rowTier: { fontFamily: F.mono, fontSize: 21 },
   rowCuts: { fontFamily: F.mono, fontSize: 18, color: C.dim },
   nextGame: { fontFamily: F.pixel, fontSize: 10, color: C.muted, textAlign: "center", marginTop: 28, letterSpacing: 2 },
-  replay: { fontFamily: F.mono, fontSize: 16, color: C.dim, textAlign: "center", marginTop: 18, textDecorationLine: "underline" },
 });
