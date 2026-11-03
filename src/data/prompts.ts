@@ -210,6 +210,7 @@ export const PROMPTS: Prompt[] = [
         "Joe Webb",
         "AJ McCarron",
         "Jarrett Stidham",
+        "John Wolford",
       ],
     },
   },
