@@ -41,6 +41,7 @@ export const PROMPTS: Prompt[] = [
         "Roberto De Zerbi|rdz|de zerbi",
         "Graham Potter",
         "Marcelo Bielsa|bielsa",
+        "Xabi Alonso",
       ],
       film: [
         "Rafael Benitez|rafa benitez|rafa",
@@ -74,6 +75,9 @@ export const PROMPTS: Prompt[] = [
         "Daniel Farke",
         "Claudio Ranieri",
         "Michael Carrick",
+        "Liam Rosenior",
+        "Igor Tudor",
+        "Marco Rose",
       ],
       diehard: [
         "Ryan Mason",
@@ -91,6 +95,11 @@ export const PROMPTS: Prompt[] = [
         "Keith Andrews",
         "Duncan Ferguson|big dunc",
         "Bruno Saltor",
+        "Darren Fletcher",
+        "Sergej Jakirovic",
+        "Pierre Sage",
+        "Alvaro Arbeloa",
+        "Matthias Jaissle",
       ],
       cbk: [
         "Mike Jackson",
@@ -102,6 +111,10 @@ export const PROMPTS: Prompt[] = [
         "Aaron Danks",
         "Simon Rusk",
         "Ben Dawson",
+        "Calum McFarlane",
+        "Adam Sadler",
+        "Mike Stowell",
+        "James Collins",
       ],
     },
   },
@@ -110,7 +123,7 @@ export const PROMPTS: Prompt[] = [
     id: "qb-playoff-start-2010",
     sport: "🏈 NFL",
     text: "Name a QB who started an NFL playoff game since 2010",
-    rule: "Playoffs from the 2010 season onward. Starters only.",
+    rule: "Playoffs from the 2010 season through the 2025 season. Starters only.",
     answers: {
       casual: [
         "Tom Brady|tb12",
@@ -144,6 +157,8 @@ export const PROMPTS: Prompt[] = [
         "Tua Tagovailoa|tua",
         "Jayden Daniels",
         "Drake Maye",
+        "Caleb Williams",
+        "Bryce Young",
       ],
       film: [
         "Tony Romo",
@@ -194,6 +209,7 @@ export const PROMPTS: Prompt[] = [
         "Ryan Lindley",
         "Joe Webb",
         "AJ McCarron",
+        "Jarrett Stidham",
       ],
     },
   },
@@ -411,6 +427,8 @@ export const PROMPTS: Prompt[] = [
         "Max Faulkner",
         "Ed Furgol",
         "Dick Mayer",
+        "Aaron Rai",
+        "Ryan Fox",
       ],
       cbk: [
         "Orville Moody",
@@ -431,7 +449,7 @@ export const PROMPTS: Prompt[] = [
     id: "heisman",
     sport: "🏈 College",
     text: "Name a Heisman Trophy winner",
-    rule: "Any year, 1935 to today.",
+    rule: "Any year, 1935 to 2025.",
     answers: {
       casual: [
         "Tim Tebow",
@@ -452,6 +470,7 @@ export const PROMPTS: Prompt[] = [
         "Jayden Daniels",
         "Bryce Young",
         "Travis Hunter",
+        "Fernando Mendoza",
         "Robert Griffin III|rg3|rgiii|robert griffin",
         "Marcus Mariota",
         "Jameis Winston",
@@ -566,6 +585,7 @@ export const PROMPTS: Prompt[] = [
         "Brendan Shanahan|shanny",
         "Mike Modano",
         "Phil Esposito|espo",
+        "John Tavares|jt",
       ],
       film: [
         "Marcel Dionne",
@@ -583,6 +603,7 @@ export const PROMPTS: Prompt[] = [
         "Mike Gartner",
         "Bryan Trottier",
         "Keith Tkachuk",
+        "Ron Francis|ronnie franchise",
       ],
       diehard: [
         "Dave Andreychuk",
@@ -638,6 +659,7 @@ export const PROMPTS: Prompt[] = [
         "Hines Ward",
         "Marcus Allen",
         "Terrell Davis|td",
+        "John Riggins|the diesel",
       ],
       film: [
         "Desmond Howard",
