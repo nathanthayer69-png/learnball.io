@@ -106,12 +106,13 @@ export function matchAnswer(prompt: Prompt, raw: string): MatchResult {
   // 1. Exact full name or alias (a shared alias like "olympiastadion" asks which one)
   const exact = list.filter((a) => a.keys.includes(input));
   if (exact.length === 1) return hit(exact[0]);
-  if (exact.length > 1) return { kind: "choose", options: exact.slice(0, 4) };
+  if (exact.length > 1) return { kind: "choose", options: exact.slice(0, 6) };
 
   // 2. Last name only
   const bySurname = list.filter((a) => a.surname === input);
   if (bySurname.length === 1) return hit(bySurname[0]);
-  if (bySurname.length > 1) return { kind: "choose", options: bySurname };
+  if (bySurname.length > 1 && bySurname.length <= 6) return { kind: "choose", options: bySurname };
+  if (bySurname.length > 6) return { kind: "miss" }; // too vague ("State")
 
   // 3. Small typos, against full names, aliases and unique last names
   const limit = allowedTypos(input.length);
