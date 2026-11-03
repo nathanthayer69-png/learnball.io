@@ -143,6 +143,7 @@ export const PROMPTS: Prompt[] = [
         "Kirk Cousins",
         "Tua Tagovailoa|tua",
         "Jayden Daniels",
+        "Drake Maye",
       ],
       film: [
         "Tony Romo",
@@ -223,6 +224,7 @@ export const PROMPTS: Prompt[] = [
         "Hakeem Olajuwon|hakeem",
         "Kareem Abdul-Jabbar|kareem|lew alcindor",
         "Shai Gilgeous-Alexander|sga|shai",
+        "Jalen Brunson|brunson",
       ],
       film: [
         "Isiah Thomas|zeke",
@@ -604,7 +606,7 @@ export const PROMPTS: Prompt[] = [
     id: "super-bowl-mvp",
     sport: "🏈 NFL",
     text: "Name a Super Bowl MVP",
-    rule: "Super Bowl I to today. Co-MVPs count.",
+    rule: "Super Bowl I to LX. Co-MVPs count.",
     answers: {
       casual: [
         "Tom Brady|tb12",
@@ -650,6 +652,7 @@ export const PROMPTS: Prompt[] = [
         "Doug Williams",
         "Larry Csonka",
         "Len Dawson",
+        "Kenneth Walker III|kenneth walker|ken walker",
       ],
       diehard: [
         "Dexter Jackson",

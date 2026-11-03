@@ -6,7 +6,8 @@ import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 
 import { Chip, PixelButton, Scanlines } from "@/components/ui";
 import { VenueMap } from "@/components/VenueMap";
-import { PROMPTS } from "@/data/prompts";
+import { promptById, promptsForSet } from "@/data/schedule";
+import type { Prompt } from "@/data/types";
 import { TIERS } from "@/data/types";
 import {
   ANSWER_SECONDS,
@@ -30,8 +31,10 @@ import {
 import { deepCuts, matchAnswer, type Answer } from "@/lib/match";
 import { C, F } from "@/theme";
 
-const freshGame = (day: string): SavedGame => ({
+const freshGame = (day: string, set: number): SavedGame => ({
   day,
+  set,
+  promptIds: promptsForSet(set),
   index: 0,
   phase: "read",
   phaseStart: Date.now(),
@@ -80,13 +83,22 @@ export default function Play() {
   // Load (or start) today's game
   useEffect(() => {
     (async () => {
+      const daily = gameNumber(day) - 1;
+      let saved = await loadGame(day);
+      if (saved && !saved.promptIds) saved = { ...saved, set: 0, promptIds: promptsForSet(0) }; // older saves
+      let g: SavedGame;
       if (params.reset) {
+        // Testing: each replay moves on to the next set of 7
         await clearGame(day);
+        g = freshGame(day, (saved?.set ?? daily) + 1);
+        await saveGame(g);
         router.setParams({ reset: undefined });
+      } else if (saved) {
+        g = saved;
+      } else {
+        g = freshGame(day, daily);
+        await saveGame(g);
       }
-      const saved = await loadGame(day);
-      const g = saved ?? freshGame(day);
-      if (!saved) await saveGame(g);
       setGame(g);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,6 +110,8 @@ export default function Play() {
     return () => clearInterval(t);
   }, []);
 
+  const prompts: Prompt[] = (game?.promptIds ?? []).map((id) => promptById(id)!).filter(Boolean);
+
   const update = useCallback((g: SavedGame) => {
     setGame(g);
     saveGame(g);
@@ -108,7 +122,7 @@ export default function Play() {
       if (!game || submitting.current) return;
       submitting.current = true;
       const results = [...game.results, result];
-      const done = results.length >= PROMPTS.length;
+      const done = results.length >= game.promptIds.length;
       update({
         ...game,
         results,
@@ -130,7 +144,7 @@ export default function Play() {
   const submit = useCallback(
     (text: string, timedOut = false) => {
       if (!game || game.done || game.phase !== "answer") return;
-      const prompt = PROMPTS[game.index];
+      const prompt = prompts[game.index];
       const r = matchAnswer(prompt, text);
       if (r.kind === "choose" && !timedOut) {
         setChoices(r.options);
@@ -155,12 +169,12 @@ export default function Play() {
       shake("NOT ON THE LIST · KEEP GUESSING");
       setTimeout(() => inputRef.current?.focus(), 10);
     },
-    [game, finish, shake, wrong],
+    [game, finish, shake, wrong, prompts],
   );
 
   const pick = (a: Answer) => {
     if (!game) return;
-    finish({ promptId: PROMPTS[game.index].id, input, name: a.name, tier: a.tier, points: TIERS[a.tier].points });
+    finish({ promptId: prompts[game.index].id, input, name: a.name, tier: a.tier, points: TIERS[a.tier].points });
   };
 
   // Phase changes driven by the clock
@@ -185,7 +199,7 @@ export default function Play() {
     return <Results game={game} onHome={() => router.replace("/")} onReplay={() => router.replace("/play?reset=1")} />;
   }
 
-  const prompt = PROMPTS[revealing ? PROMPTS.findIndex((p) => p.id === last.promptId) : game.index];
+  const prompt = revealing ? promptById(last.promptId)! : prompts[game.index];
   const elapsed = Math.max(0, now - game.phaseStart);
   const total = (game.phase === "read" ? READ_SECONDS : ANSWER_SECONDS) * 1000;
   const left = Math.max(0, total - elapsed);
@@ -202,7 +216,7 @@ export default function Play() {
               <Text style={styles.brand}>LEARNBALL</Text>
             </Pressable>
             <Text style={styles.topText}>
-              PROMPT {Math.min(game.results.length + (revealing ? 0 : 1), PROMPTS.length)}/{PROMPTS.length}
+              PROMPT {Math.min(game.results.length + (revealing ? 0 : 1), prompts.length)}/{prompts.length}
             </Text>
             <Text style={styles.topText}>{score} PTS</Text>
           </View>
@@ -343,7 +357,7 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
 
           <View style={{ marginTop: 24, gap: 12 }}>
             {game.results.map((r, i) => {
-              const prompt = PROMPTS.find((p) => p.id === r.promptId)!;
+              const prompt = promptById(r.promptId)!;
               const tier = r.tier ? TIERS[r.tier] : null;
               return (
                 <View key={r.promptId} style={styles.row}>

@@ -14,6 +14,7 @@ export type MatchResult =
   | { kind: "empty" };
 
 const SUFFIXES = new Set(["jr", "sr", "ii", "iii", "iv"]);
+const GENERIC = new Set(["royal", "estadio", "stade", "stadio", "stadium", "the", "national", "international", "great", "golden", "american", "united", "state"]);
 
 /** "José María Olazábal Jr." -> ["jose", "maria", "olazabal"] */
 function words(s: string): string[] {
@@ -55,6 +56,16 @@ export function answersFor(prompt: Prompt): Answer[] {
       });
     }
   }
+  if (prompt.matchFirstWord) {
+    // "Fenway" for Fenway Park, "Oakmont" for Oakmont — only when no other answer starts the same way
+    const first = (n: string) => words(n)[0] ?? "";
+    const counts = new Map<string, number>();
+    for (const a of list) counts.set(first(a.name), (counts.get(first(a.name)) ?? 0) + 1);
+    for (const a of list) {
+      const f = first(a.name);
+      if (f.length >= 4 && counts.get(f) === 1 && !GENERIC.has(f)) a.keys.push(f);
+    }
+  }
   cache.set(prompt.id, list);
   return list;
 }
@@ -92,9 +103,10 @@ export function matchAnswer(prompt: Prompt, raw: string): MatchResult {
   if (!input) return { kind: "empty" };
   const list = answersFor(prompt);
 
-  // 1. Exact full name or alias
-  const exact = list.find((a) => a.keys.includes(input));
-  if (exact) return hit(exact);
+  // 1. Exact full name or alias (a shared alias like "olympiastadion" asks which one)
+  const exact = list.filter((a) => a.keys.includes(input));
+  if (exact.length === 1) return hit(exact[0]);
+  if (exact.length > 1) return { kind: "choose", options: exact.slice(0, 4) };
 
   // 2. Last name only
   const bySurname = list.filter((a) => a.surname === input);

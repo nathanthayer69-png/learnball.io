@@ -20,6 +20,8 @@ export type PromptResult = {
 
 export type SavedGame = {
   day: string;
+  set: number; // which set of 7 prompts (see data/schedule.ts)
+  promptIds: string[];
   index: number; // current prompt
   phase: "read" | "answer";
   phaseStart: number; // ms timestamp, so a refresh can't buy extra time

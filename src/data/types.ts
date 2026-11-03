@@ -28,5 +28,7 @@ export type Prompt = {
   sport: string;
   text: string;
   rule: string;
+  /** Also accept a venue's first word when it's unique ("Fenway", "Oakmont"). */
+  matchFirstWord?: boolean;
   answers: Record<TierId, string[]>;
 };
