@@ -107,7 +107,7 @@ export default function Home() {
             {howTo && (
               <View style={styles.howTo}>
                 <Text style={styles.howLine}>Seven sports prompts a day, the same for everyone.</Text>
-                <Text style={styles.howLine}>Read each prompt for 5 seconds, then you get {ANSWER_SECONDS} seconds to type one answer.</Text>
+                <Text style={styles.howLine}>Read each prompt for 5 seconds, then you get {ANSWER_SECONDS} seconds to land a correct answer. Wrong guesses just shake. Keep trying until the clock runs out.</Text>
                 <Text style={styles.howLine}>Any correct answer scores. The more obscure it is, the more it's worth:</Text>
                 {TIER_ORDER.map((t) => (
                   <Text key={t} style={[styles.howLine, { color: TIERS[t].color }]}>

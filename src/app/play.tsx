@@ -2,7 +2,7 @@ import type React from "react";
 import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Chip, PixelButton, Scanlines } from "@/components/ui";
 import { VenueMap } from "@/components/VenueMap";
@@ -61,6 +61,20 @@ export default function Play() {
   const [choices, setChoices] = useState<Answer[] | null>(null);
   const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const submitting = useRef(false);
+  const [wrong, setWrong] = useState<string[]>([]); // wrong guesses on this prompt
+  const [notice, setNotice] = useState<string | null>(null);
+  const shakeX = useRef(new Animated.Value(0)).current;
+
+  const shake = useCallback(
+    (message: string) => {
+      setNotice(message);
+      shakeX.setValue(0);
+      Animated.sequence(
+        [10, -10, 8, -8, 4, -4, 0].map((v) => Animated.timing(shakeX, { toValue: v, duration: 45, useNativeDriver: false })),
+      ).start();
+    },
+    [shakeX],
+  );
 
   // Load (or start) today's game
   useEffect(() => {
@@ -105,6 +119,8 @@ export default function Play() {
       if (done) recordFinish(game.day);
       setInput("");
       setChoices(null);
+      setWrong([]);
+      setNotice(null);
       setTimeout(() => (submitting.current = false), 50);
     },
     [game, update],
@@ -121,11 +137,24 @@ export default function Play() {
       }
       if (r.kind === "hit") {
         finish({ promptId: prompt.id, input: text, name: r.answer.name, tier: r.answer.tier, points: r.points });
-      } else {
-        finish({ promptId: prompt.id, input: text, points: 0 });
+        return;
       }
+      if (timedOut) {
+        // Time's up: record the last thing they tried
+        finish({ promptId: prompt.id, input: text.trim() || wrong[wrong.length - 1] || "", points: 0 });
+        return;
+      }
+      // Wrong or empty: shake, keep the clock running, let them guess again
+      if (r.kind === "empty") {
+        shake("TYPE AN ANSWER FIRST");
+        return;
+      }
+      setWrong((w) => [...w, text.trim()]);
+      setInput("");
+      shake("NOT ON THE LIST · KEEP GUESSING");
+      setTimeout(() => inputRef.current?.focus(), 10);
     },
-    [game, finish],
+    [game, finish, shake, wrong],
   );
 
   const pick = (a: Answer) => {
@@ -207,11 +236,21 @@ export default function Play() {
               </View>
 
               {/* Answer box */}
-              <View style={[styles.inputWrap, !answering && { opacity: 0.45 }]}>
+              <Animated.View
+                style={[
+                  styles.inputWrap,
+                  !answering && { opacity: 0.45 },
+                  notice && notice !== "TYPE AN ANSWER FIRST" && { borderColor: C.red },
+                  { transform: [{ translateX: shakeX }] },
+                ]}
+              >
                 <TextInput
                   ref={inputRef}
                   value={input}
-                  onChangeText={setInput}
+                  onChangeText={(t) => {
+                    setInput(t);
+                    if (notice) setNotice(null);
+                  }}
                   editable={answering}
                   placeholder={answering ? "type your answer…" : "locked while you read"}
                   placeholderTextColor={C.dim}
@@ -223,7 +262,10 @@ export default function Play() {
                   onSubmitEditing={() => submit(input)}
                   style={styles.input}
                 />
-              </View>
+              </Animated.View>
+
+              {notice && <Text style={styles.notice}>✕ {notice}</Text>}
+              {wrong.length > 0 && <Text style={styles.wrongList}>Tried: {wrong.join(" · ")}</Text>}
 
               {choices ? (
                 <View style={{ marginTop: 14, gap: 10 }}>
@@ -345,6 +387,8 @@ const styles = StyleSheet.create({
   barFill: { height: "100%" },
   inputWrap: { marginTop: 18, borderWidth: 3, borderColor: C.border, backgroundColor: "#0b1328" },
   input: { fontFamily: F.mono, fontSize: 30, color: C.text, paddingHorizontal: 14, paddingVertical: 10, outlineStyle: "none" } as any,
+  notice: { fontFamily: F.pixel, fontSize: 10, color: C.red, letterSpacing: 1, marginTop: 10 },
+  wrongList: { fontFamily: F.mono, fontSize: 18, color: C.dim, marginTop: 6, textDecorationLine: "line-through" },
   chooseText: { fontFamily: F.pixel, fontSize: 10, color: C.border, letterSpacing: 1 },
   reveal: { marginTop: 22, padding: 22, borderWidth: 4, backgroundColor: C.panel, alignItems: "center", gap: 12 },
   revealTier: { fontFamily: F.pixel, fontSize: 14, letterSpacing: 2, textAlign: "center" },
