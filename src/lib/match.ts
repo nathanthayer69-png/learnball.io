@@ -25,11 +25,14 @@ function words(s: string): string[] {
     .replace(/ø/g, "o")
     .replace(/æ/g, "ae")
     .replace(/ß/g, "ss")
+    .replace(/ł/g, "l")
+    .replace(/đ/g, "d")
+    .replace(/ı/g, "i")
     .replace(/['’.]/g, "") // O'Neil -> oneil, J.J. -> jj
     .replace(/[^a-z0-9]+/g, " ") // hyphens and other punctuation -> space
     .trim()
     .split(" ")
-    .filter((w) => w && !SUFFIXES.has(w));
+    .filter((w, i) => w && !(i > 0 && SUFFIXES.has(w))); // "J.R. Smith" keeps its "JR"
 }
 
 export const normalize = (s: string) => words(s).join("");

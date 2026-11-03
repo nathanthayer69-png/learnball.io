@@ -1,9 +1,10 @@
 import { BATCH3_PROMPTS } from "./prompts-batch3";
+import { BATCH4_PROMPTS } from "./prompts-batch4";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -66,6 +67,33 @@ export const DAYS: string[][] = [
     "ap-no1-college-football",
     "nba-1500-steals",
     "olympians-5-golds",
+  ],
+  [
+    "wwe-champions",
+    "world-cup-5-goals",
+    "perfect-games",
+    "nba-roy",
+    "f1-champions",
+    "mascots",
+    "si-sportsperson",
+  ],
+  [
+    "ufc-champions",
+    "qb-35k-yards",
+    "nba-60-point-games",
+    "ucl-finalists",
+    "nascar-champions",
+    "super-bowl-stadiums",
+    "game-covers",
+  ],
+  [
+    "heavyweight-champs",
+    "masters-champions",
+    "nba-hs-draftees",
+    "hr-derby",
+    "pl-relegated-2010",
+    "nfl-and-mlb",
+    "dunk-contest",
   ],
 ];
 
