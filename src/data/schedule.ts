@@ -4,11 +4,12 @@ import { BATCH5_PROMPTS } from "./prompts-batch5";
 import { BATCH6_PROMPTS } from "./prompts-batch6";
 import { BATCH7_PROMPTS } from "./prompts-batch7";
 import { BATCH8_PROMPTS } from "./prompts-batch8";
+import { BATCH9_PROMPTS } from "./prompts-batch9";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -126,6 +127,9 @@ export const DAYS: string[][] = [
   ["nfl-coach-100", "nba-asg-mvp", "mlb-300w", "art-ross", "uefa-cup-winners", "tyson-opponents", "olympic-mascots"],
   ["nfl-r1-qb-2000", "wbb-final-four", "nba-coach-500", "mlb-roy-1970", "vezina-1982", "liv-golfers", "nascar-20-wins"],
   ["nfl-50-int", "hbcu", "wnba-no1", "ws-managers", "nhl-300w-goalie", "african-poty", "indycar-champs"],
+  ["nfl-coy", "nba-skills", "mlb-50hr", "jack-adams", "wc-nations", "wrestlemania", "womens-major-2010"],
+  ["sb-halftime", "nba-50-playoff", "mlb-300sv", "le-mans-makes", "bundesliga-scorers", "japanese-mlb", "fedex-dubai"],
+  ["cfb-coach-200", "mlb-asg-mvp", "gg-shortstop", "selke", "mls-clubs", "la28-sports", "f1-teams-1990"],
 ];
 
 /** Prompts built but not yet in a day. */
