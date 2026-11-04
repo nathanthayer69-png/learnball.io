@@ -901,7 +901,7 @@ export const BATCH7_PROMPTS: Prompt[] = [
     id: "mls-mvp",
     sport: "⚽ MLS",
     text: "Name an MLS MVP",
-    rule: "Landon Donovan MVP Award, 1996 to 2025.",
+    rule: "League MVP award, 1996 to 2025.",
     answers: {
       casual: [
         "Lionel Messi|messi",

@@ -6,11 +6,12 @@ import { BATCH7_PROMPTS } from "./prompts-batch7";
 import { BATCH8_PROMPTS } from "./prompts-batch8";
 import { BATCH9_PROMPTS } from "./prompts-batch9";
 import { BATCH10_PROMPTS } from "./prompts-batch10";
+import { BATCH11_PROMPTS } from "./prompts-batch11";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS, ...BATCH11_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -131,13 +132,17 @@ export const DAYS: string[][] = [
   ["nfl-coy", "nba-skills", "mlb-50hr", "jack-adams", "wc-nations", "wrestlemania", "womens-major-2010"],
   ["sb-halftime", "nba-50-playoff", "mlb-300sv", "le-mans-makes", "bundesliga-scorers", "japanese-mlb", "fedex-dubai"],
   ["cfb-coach-200", "mlb-asg-mvp", "gg-shortstop", "selke", "mls-clubs", "la28-sports", "f1-teams-1990"],
-  ["nhl-50-goals-2000", "usmnt-50", "30-for-30", "preakness-belmont-2000", "atp-top10-2000", "former-ballparks", "nba-old-names"],
-  ["nascar-tracks", "wwc-nations", "never-won-title", "ryder-cup-venues", "wta-top10-2000", "outdoor-venues", "track-events"],
-  ["college-stadium-75k", "uswnt-100", "real-barca", "us-flag-bearers", "solheim-players", "olympic-tennis-1988", "former-nfl-stadiums"],
+  ["nhl-50-goals-2000", "usmnt-50", "30-for-30", "preakness-belmont-2000", "atp-top10-2000", "former-ballparks", "motogp-champs"],
+  ["nascar-tracks", "bundesliga-clubs", "never-won-title", "golden-spikes", "skating-medalists", "video-games", "track-events"],
+  ["college-stadium-75k", "uswnt-100", "real-barca", "us-flag-bearers", "solheim-players", "olympic-tennis-1988", "football-films"],
+  ["ucl-final-cities", "baseball-films", "butkus", "gym-aa-women", "pga-events-2026", "basketball-moves", "finishers"],
+  ["golf-shots", "cycling-events", "pitch-types", "club-nicknames", "hobey-baker", "trophies", "skate-tricks"],
+  ["formations", "basketball-films", "fifa-covers", "bc-classic", "golf-brands", "winter-disciplines", "stat-abbrevs"],
+  ["tennis-shots", "naismith", "pl-grounds", "apparel", "combat-sports", "former-arenas", "soccer-skills"],
 ];
 
 /** Prompts built but not yet in a day. */
-export const BANKED: string[] = ["ucl-final-cities"];
+export const BANKED: string[] = [];
 
 export function promptsForSet(set: number): string[] {
   return DAYS[((set % DAYS.length) + DAYS.length) % DAYS.length];

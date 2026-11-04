@@ -243,7 +243,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
     id: "rivalry-trophies",
     sport: "🏈 College",
     text: "Name a college football rivalry trophy",
-    rule: "Name the trophy itself, not the matchup. Any NCAA level.",
+    rule: "Name the prize itself, not the matchup. Any NCAA level.",
     answers: {
       casual: [
         "Paul Bunyan's Axe|bunyans axe",
