@@ -1,7 +1,7 @@
 import type React from "react";
 import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Chip, PixelButton, Scanlines } from "@/components/ui";
@@ -54,6 +54,17 @@ function secondsToNextGame() {
   const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
   return 86400 - (get("hour") * 3600 + get("minute") * 60 + get("second"));
 }
+
+/** The question card. Memoized so the 10x-a-second clock never redraws it. */
+const PromptCard = memo(function PromptCard({ prompt }: { prompt: Prompt }) {
+  return (
+    <View style={styles.card}>
+      <Chip label={prompt.sport.toUpperCase()} color={C.border} />
+      <Text style={styles.prompt}>{prompt.text}</Text>
+      <Text style={styles.rule}>{prompt.rule}</Text>
+    </View>
+  );
+});
 
 export default function Play() {
   const router = useRouter();
@@ -231,11 +242,7 @@ export default function Play() {
           <VenueMap score={score} />
 
           {/* Prompt */}
-          <View style={styles.card}>
-            <Chip label={prompt.sport.toUpperCase()} color={C.border} />
-            <Text style={styles.prompt}>{prompt.text}</Text>
-            <Text style={styles.rule}>{prompt.rule}</Text>
-          </View>
+          <PromptCard prompt={prompt} />
 
           {revealing ? (
             <Reveal result={last} />

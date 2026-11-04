@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
 
 import { C, F } from "@/theme";
 
-/** Faint CRT scanlines over the whole screen. */
-export function Scanlines() {
+/** Faint CRT scanlines over the whole screen. Memoized so the game clock doesn't redraw them. */
+export const Scanlines = memo(function Scanlines() {
   const { height } = useWindowDimensions();
   const count = Math.ceil(height / 4);
   return (
@@ -13,7 +14,7 @@ export function Scanlines() {
       ))}
     </View>
   );
-}
+});
 
 /** Big title with an offset two-colour shadow, arcade style. */
 export function PixelTitle({ children, size = 34 }: { children: string; size?: number }) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";
 
 import { MAX_SCORE, VENUES, venueForScore } from "@/lib/game";
@@ -66,7 +66,7 @@ function Tile({ id }: { id: string }) {
   }
 }
 
-export function VenueMap({ score, showLabels = true }: { score: number; showLabels?: boolean }) {
+export const VenueMap = memo(function VenueMap({ score, showLabels = true }: { score: number; showLabels?: boolean }) {
   const [width, setWidth] = useState(0);
   const pos = useRef(new Animated.Value(0)).current;
   const pct = Math.min(score, MAX_SCORE) / MAX_SCORE;
@@ -123,4 +123,4 @@ export function VenueMap({ score, showLabels = true }: { score: number; showLabe
       )}
     </View>
   );
-}
+});
