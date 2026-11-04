@@ -812,7 +812,7 @@ export const MORE_PROMPTS: Prompt[] = [
     id: "winter-medal-nations",
     sport: "⛷️ Olympics",
     text: "Name a country that won a medal at the Winter Olympics",
-    rule: "Any Winter Games. Historical teams like the Soviet Union count.",
+    rule: "Any Winter Games. Countries that no longer exist count too.",
     answers: {
       casual: [
         "United States|usa|us|america|united states of america|team usa",

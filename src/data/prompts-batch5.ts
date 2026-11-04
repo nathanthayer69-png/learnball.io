@@ -110,7 +110,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
     id: "cat-schools",
     sport: "🐯 College",
     text: "Name a D-I school whose mascot is a cat",
-    rule: "Tigers, Wildcats, Lions, Cougars and the rest. Type the school. Bearcats don't count: a bearcat isn't a cat.",
+    rule: "Any big or small cat nickname. Type the school. Bearcats don't count: a bearcat isn't a cat.",
     answers: {
       casual: [
         "LSU|louisiana state",
@@ -243,7 +243,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
     id: "rivalry-trophies",
     sport: "🏈 College",
     text: "Name a college football rivalry trophy",
-    rule: "The trophy itself, at any NCAA level: Paul Bunyan's Axe, not 'Minnesota vs. Wisconsin'.",
+    rule: "Name the trophy itself, not the matchup. Any NCAA level.",
     answers: {
       casual: [
         "Paul Bunyan's Axe|bunyans axe",
@@ -454,7 +454,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
         "Regents Cup",
         "Stagg Hat",
         "Transit Trophy|Transit",
-        "The Trophy|Trophy",
+        "The Trophy|pacific lutheran puget sound trophy",
         "Wooden Shoes Rivalry Trophy|Wooden Shoes Rivalry",
         "Bronze Turkey Trophy|bronze turkey|Bronze Turkey",
         "The Scoop|Scoop",
@@ -626,7 +626,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
     id: "cricket-positions",
     sport: "🏏 Cricket",
     text: "Name a cricket fielding position",
-    rule: "Any named spot on the field, including the wicket-keeper.",
+    rule: "Any named spot on the field.",
     answers: {
       casual: [
         "Wicket-keeper|keeper|wicketkeeper|wk",
@@ -848,7 +848,7 @@ export const BATCH5_PROMPTS: Prompt[] = [
     id: "dropped-olympic",
     sport: "🏅 Olympics",
     text: "Name a sport or event dropped from the Olympics",
-    rule: "Summer Games, even if it came back later: golf, rugby and baseball all count.",
+    rule: "Summer Games. Counts even if the sport was removed and came back later.",
     answers: {
       casual: [
         "Tug of war|tug o war",
