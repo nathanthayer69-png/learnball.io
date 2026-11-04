@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import { PixelButton, PixelTitle, Scanlines } from "@/components/ui";
+import { DAYS } from "@/data/schedule";
 import { TIERS, TIER_ORDER } from "@/data/types";
 import { ANSWER_SECONDS, UNLIMITED_PLAY, gameNumber, loadGame, loadStreak, todayET } from "@/lib/game";
 import { C, F } from "@/theme";
@@ -121,6 +122,17 @@ export default function Home() {
 
             <PixelButton big size={narrow ? 13 : undefined} label={label} onPress={() => router.push(replay ? "/play?reset=1" : "/play")} style={{ marginTop: 18 }} />
 
+            {UNLIMITED_PLAY && (
+              <View style={styles.picker}>
+                <Text style={styles.link}>TESTING · PICK A DAY</Text>
+                <View style={styles.dayRow}>
+                  {DAYS.map((_, i) => (
+                    <PixelButton key={i} label={String(i + 1)} size={narrow ? 10 : 12} onPress={() => router.push(`/play?set=${i + 1}`)} />
+                  ))}
+                </View>
+              </View>
+            )}
+
             <View style={styles.footer}>
               <Text style={styles.footText}>
                 GAME #{gameNumber(day)} · STREAK {streak}
@@ -165,6 +177,8 @@ const styles = StyleSheet.create({
   link: { fontFamily: F.pixel, fontSize: 11, color: C.muted, letterSpacing: 3 },
   howTo: { marginTop: 14, padding: 14, borderWidth: 2, borderColor: C.dim, backgroundColor: C.panel, gap: 4 },
   howLine: { fontFamily: F.mono, fontSize: 20, color: C.text },
+  picker: { marginTop: 22, gap: 10 },
+  dayRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   footer: { marginTop: 16, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 },
   footText: { fontFamily: F.pixel, fontSize: 10, color: C.muted, letterSpacing: 2 },
 });

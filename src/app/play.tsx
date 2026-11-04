@@ -57,7 +57,7 @@ function secondsToNextGame() {
 
 export default function Play() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ reset?: string }>();
+  const params = useLocalSearchParams<{ reset?: string; set?: string }>();
   const day = todayET();
   const [game, setGame] = useState<SavedGame | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -87,7 +87,14 @@ export default function Play() {
       let saved = await loadGame(day);
       if (saved && !saved.promptIds) saved = { ...saved, set: 0, promptIds: promptsForSet(0) }; // older saves
       let g: SavedGame;
-      if (params.reset) {
+      const pick = Number(params.set);
+      if (params.set && pick >= 1) {
+        // Testing: jump straight to a chosen day (1-based)
+        await clearGame(day);
+        g = freshGame(day, pick - 1);
+        await saveGame(g);
+        router.setParams({ set: undefined });
+      } else if (params.reset) {
         // Testing: each replay moves on to the next set of 7
         await clearGame(day);
         g = freshGame(day, (saved?.set ?? daily) + 1);
@@ -102,7 +109,7 @@ export default function Play() {
       setGame(g);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day, params.reset]);
+  }, [day, params.reset, params.set]);
 
   // Clock
   useEffect(() => {
