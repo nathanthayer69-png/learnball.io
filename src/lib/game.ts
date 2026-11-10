@@ -5,7 +5,7 @@ export const READ_SECONDS = 5;
 export const ANSWER_SECONDS = 25;
 export const REVEAL_MS = 2400;
 export const MAX_SCORE = 700;
-export const LAUNCH_DAY = "2026-11-02"; // Game #1
+export const LAUNCH_DAY = "2026-11-09"; // Game #1
 
 /** TESTING: lets you replay as many times as you want. Set to false before launch. */
 export const UNLIMITED_PLAY = true;
