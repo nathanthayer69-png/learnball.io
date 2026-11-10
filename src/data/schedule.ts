@@ -8,11 +8,12 @@ import { BATCH9_PROMPTS } from "./prompts-batch9";
 import { BATCH10_PROMPTS } from "./prompts-batch10";
 import { BATCH11_PROMPTS } from "./prompts-batch11";
 import { BATCH12_PROMPTS } from "./prompts-batch12";
+import { BATCH13_PROMPTS } from "./prompts-batch13";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS, ...BATCH11_PROMPTS, ...BATCH12_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS, ...BATCH11_PROMPTS, ...BATCH12_PROMPTS, ...BATCH13_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -52,6 +53,13 @@ export const DAYS: string[][] = [
   ["club-nicknames", "trophies", "cws-champs", "cycling-events", "pitch-types", "nfl-r1-2026", "ncaa-covers"],
   ["basketball-films", "stat-abbrevs", "winter-disciplines", "golf-brands", "bc-classic", "formations", "fifa-covers"],
   ["former-arenas", "pl-grounds", "naismith", "apparel", "combat-sports", "mlb-managers-2026", "walkoff-ws"],
+  ["animal-team-names", "famous-moments", "nfl-100-team", "heisman-schools", "mlb-30-30", "us-amateur", "chess-champs"],
+  ["ball-sports-names", "hr-slang", "nba-75th", "signature-shoes", "docuseries", "nhl-100-greatest", "ferrari-drivers"],
+  ["football-positions", "unit-nicknames", "nfl-2010s-all-decade", "baseball-hof-2000", "horse-races", "fa-cup-winners", "miracle-on-ice"],
+  ["esports-games", "father-son", "nfl-no1-pre2000", "bulls-90s", "states-no-team", "bird-schools", "golf-announcers"],
+  ["sports-networks", "siblings", "nba-hof-2010", "mlb-500-sb", "thps-skaters", "canada-teams", "tag-teams"],
+  ["college-conferences", "sports-shows-podcasts", "nba-coy", "ballpark-features", "national-team-nicknames", "cauldron-lighters", "mcgregor-opponents"],
+  ["region-teams", "disney-sports-movies", "nfl-hof-2015", "commissioners", "superstar-clubs", "folded-leagues", "paralympic-sports"],
 ];
 
 export const BANKED: string[] = [];
