@@ -7,11 +7,12 @@ import { BATCH8_PROMPTS } from "./prompts-batch8";
 import { BATCH9_PROMPTS } from "./prompts-batch9";
 import { BATCH10_PROMPTS } from "./prompts-batch10";
 import { BATCH11_PROMPTS } from "./prompts-batch11";
+import { BATCH12_PROMPTS } from "./prompts-batch12";
 import { MORE_PROMPTS } from "./prompts-more";
 import { PROMPTS as DAY1 } from "./prompts";
 import type { Prompt } from "./types";
 
-export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS, ...BATCH11_PROMPTS];
+export const ALL_PROMPTS: Prompt[] = [...DAY1, ...MORE_PROMPTS, ...BATCH3_PROMPTS, ...BATCH4_PROMPTS, ...BATCH5_PROMPTS, ...BATCH6_PROMPTS, ...BATCH7_PROMPTS, ...BATCH8_PROMPTS, ...BATCH9_PROMPTS, ...BATCH10_PROMPTS, ...BATCH11_PROMPTS, ...BATCH12_PROMPTS];
 
 const byId = new Map(ALL_PROMPTS.map((p) => [p.id, p]));
 export const promptById = (id: string) => byId.get(id);
@@ -21,127 +22,38 @@ export const promptById = (id: string) => byId.get(id);
  * The game cycles through these in order, one set per day.
  */
 export const DAYS: string[][] = [
-  [
-    "epl-managers-2020",
-    "qb-playoff-start-2010",
-    "nba-finals-mvp",
-    "golf-majors-1950",
-    "heisman",
-    "nhl-500-goals",
-    "super-bowl-mvp",
-  ],
-  [
-    "title-coaches-2000",
-    "ucl-managers",
-    "solo-no-hitters-2000",
-    "current-venues",
-    "grand-slam-2000",
-    "winter-medal-nations",
-    "relocated-teams",
-  ],
-  [
-    "ryder-cup-captains",
-    "pl-100-goals",
-    "nhl-700-assists",
-    "world-cup-final-venues",
-    "kentucky-derby",
-    "tour-de-france",
-    "nfl-100-sacks",
-  ],
-  [
-    "nfl-mvp",
-    "ballon-dor",
-    "nba-1200-games",
-    "olympic-ball-sports",
-    "fbs-teams",
-    "tennis-world-no1",
-    "major-courses-1950",
-  ],
-  [
-    "nba-mvp",
-    "nfl-top3-picks-2010",
-    "pl-or-european-cup-clubs",
-    "golf-world-no1",
-    "olympic-host-cities",
-    "nba-1500-blocks",
-    "mlb-ped-suspensions",
-  ],
-  [
-    "no1-picks-2000",
-    "open-era-slams",
-    "dpoy-nba-nfl",
-    "color-team-names",
-    "ap-no1-college-football",
-    "nba-1500-steals",
-    "olympians-5-golds",
-  ],
-  [
-    "wwe-champions",
-    "world-cup-5-goals",
-    "perfect-games",
-    "nba-roy",
-    "f1-champions",
-    "mascots",
-    "si-sportsperson",
-  ],
-  [
-    "ufc-champions",
-    "qb-35k-yards",
-    "nba-60-point-games",
-    "ucl-finalists",
-    "nascar-champions",
-    "super-bowl-stadiums",
-    "game-covers",
-  ],
-  [
-    "heavyweight-champs",
-    "masters-champions",
-    "nba-hs-draftees",
-    "hr-derby",
-    "pl-relegated-2010",
-    "nfl-and-mlb",
-    "dunk-contest",
-  ],
-  [
-    "elite-eight",
-    "f1-circuits",
-    "darts-champs",
-    "penalties",
-    "ws-mvp",
-    "open-champs",
-    "rwc-nations",
-  ],
-  [
-    "cat-schools",
-    "daytona-500",
-    "snooker-champs",
-    "dropped-olympic",
-    "mnf-broadcasters",
-    "us-open-champs",
-    "cricket-positions",
-  ],
-  ["bowl-games", "nba-20k", "cy-young", "conn-smythe", "wc-final-scorers", "snl-hosts", "wnba-mvp"],
-  ["nfl-oroy", "final-four-mop", "hart", "pl-golden-boot", "indy-500", "horseback-sports", "ryder-cup-players"],
-  ["nfl-10k-rush", "nba-6moy", "mlb-500hr", "royal-rumble", "olympic-100m", "rivalry-trophies", "pga-champs"],
-  ["nfl-12k-rec", "nba-3pt", "mlb-mvp-1960", "norris", "ucl-30-goals", "ali-opponents", "cbb-coach-700"],
-  ["nfl-droy", "nba-mip", "mlb-3000h", "calder-1970", "pl-pots", "f1-winners-2000", "dwts-athletes"],
-  ["nfl-wpmoy", "nba-10k-reb", "players-champs", "mls-mvp", "monaco-gp", "wsop-champs", "nfl-cpoy"],
-  ["nfl-coach-100", "nba-asg-mvp", "mlb-300w", "art-ross", "uefa-cup-winners", "tyson-opponents", "olympic-mascots"],
-  ["nfl-r1-qb-2000", "wbb-final-four", "nba-coach-500", "mlb-roy-1970", "vezina-1982", "liv-golfers", "nascar-20-wins"],
-  ["nfl-50-int", "hbcu", "wnba-no1", "ws-managers", "nhl-300w-goalie", "african-poty", "indycar-champs"],
-  ["nfl-coy", "nba-skills", "mlb-50hr", "jack-adams", "wc-nations", "wrestlemania", "womens-major-2010"],
-  ["sb-halftime", "nba-50-playoff", "mlb-300sv", "le-mans-makes", "bundesliga-scorers", "japanese-mlb", "fedex-dubai"],
-  ["cfb-coach-200", "mlb-asg-mvp", "gg-shortstop", "selke", "mls-clubs", "la28-sports", "f1-teams-1990"],
-  ["nhl-50-goals-2000", "usmnt-50", "30-for-30", "preakness-belmont-2000", "atp-top10-2000", "former-ballparks", "motogp-champs"],
-  ["nascar-tracks", "bundesliga-clubs", "never-won-title", "golden-spikes", "skating-medalists", "video-games", "track-events"],
-  ["college-stadium-75k", "uswnt-100", "real-barca", "us-flag-bearers", "solheim-players", "olympic-tennis-1988", "football-films"],
-  ["ucl-final-cities", "baseball-films", "butkus", "gym-aa-women", "pga-events-2026", "basketball-moves", "finishers"],
-  ["golf-shots", "cycling-events", "pitch-types", "club-nicknames", "hobey-baker", "trophies", "skate-tricks"],
-  ["formations", "basketball-films", "fifa-covers", "bc-classic", "golf-brands", "winter-disciplines", "stat-abbrevs"],
-  ["tennis-shots", "naismith", "pl-grounds", "apparel", "combat-sports", "former-arenas", "soccer-skills"],
+  ["epl-managers-2020", "qb-playoff-start-2010", "nba-finals-mvp", "golf-majors-1950", "heisman", "nhl-500-goals", "super-bowl-mvp"],
+  ["current-venues", "grand-slam-2000", "title-coaches-2000", "winter-medal-nations", "relocated-teams", "solo-no-hitters-2000", "ucl-managers"],
+  ["nhl-700-assists", "kentucky-derby", "ryder-cup-captains", "nfl-100-sacks", "pl-100-goals", "tour-de-france", "world-cup-final-venues"],
+  ["fbs-teams", "tennis-world-no1", "nfl-mvp", "ballon-dor", "major-courses-1950", "nba-1200-games", "olympic-ball-sports"],
+  ["nfl-top3-picks-2010", "olympic-host-cities", "golf-world-no1", "nba-mvp", "mlb-ped-suspensions", "nba-1500-blocks", "pl-or-european-cup-clubs"],
+  ["open-era-slams", "dpoy-nba-nfl", "no1-picks-2000", "olympians-5-golds", "nba-1500-steals", "color-team-names", "ap-no1-college-football"],
+  ["mascots", "world-cup-5-goals", "si-sportsperson", "nba-roy", "wwe-champions", "f1-champions", "perfect-games"],
+  ["ufc-champions", "game-covers", "qb-35k-yards", "nba-60-point-games", "ucl-finalists", "nascar-champions", "super-bowl-stadiums"],
+  ["heavyweight-champs", "masters-champions", "hr-derby", "nba-hs-draftees", "pl-relegated-2010", "dunk-contest", "nfl-and-mlb"],
+  ["penalties", "title-teams-2000", "ws-mvp", "elite-eight", "f1-circuits", "open-champs", "wc26-host-cities"],
+  ["mnf-broadcasters", "us-open-champs", "cat-schools", "cricket-positions", "nba-asg-2026", "dropped-olympic", "daytona-500"],
+  ["cy-young", "nba-20k", "conn-smythe", "snl-hosts", "wc-final-scorers", "bowl-games", "wnba-mvp"],
+  ["ryder-cup-players", "final-four-mop", "indy-500", "hart", "nfl-oroy", "horseback-sports", "pl-golden-boot"],
+  ["rivalry-trophies", "pga-champs", "royal-rumble", "mlb-500hr", "nba-6moy", "olympic-100m", "nfl-10k-rush"],
+  ["mlb-mvp-1960", "cbb-coach-700", "ucl-30-goals", "nfl-12k-rec", "nba-3pt", "norris", "ali-opponents"],
+  ["dwts-athletes", "calder-1970", "nfl-droy", "mlb-3000h", "f1-winners-2000", "nba-mip", "pl-pots"],
+  ["nfl-wpmoy", "nba-10k-reb", "players-champs", "nfl-cpoy", "monaco-gp", "wsop-champs", "mls-mvp"],
+  ["nba-asg-mvp", "sports-tv-shows", "nfl-coach-100", "olympic-mascots", "tyson-opponents", "art-ross", "mlb-300w"],
+  ["nfl-r1-qb-2000", "mlb-roy-1970", "nba-coach-500", "wbb-final-four", "nascar-20-wins", "liv-golfers", "vezina-1982"],
+  ["ws-managers", "pga-winners-2026", "wnba-no1", "nhl-300w-goalie", "nba-coaches-2026", "nfl-50-int", "hbcu"],
+  ["wc-nations", "wrestlemania", "nfl-coy", "mlb-50hr", "womens-major-2010", "nba-4-rings", "milan-us-medalists"],
+  ["sb-halftime", "nba-50-playoff", "japanese-mlb", "fedex-dubai", "nfl-coaches-2026", "mlb-300sv", "dream-redeem"],
+  ["la28-sports", "f1-teams-1990", "mlb-asg-mvp", "gg-shortstop", "cfb-coach-200", "mls-clubs", "nfl-100-td"],
+  ["atp-top10-2000", "usmnt-50", "former-ballparks", "30-for-30", "preakness-belmont-2000", "motogp-champs", "nhl-50-goals-2000"],
+  ["video-games", "skating-medalists", "track-events", "golden-spikes", "bundesliga-clubs", "never-won-title", "nascar-tracks"],
+  ["football-films", "solheim-players", "olympic-tennis-1988", "uswnt-100", "us-flag-bearers", "college-stadium-75k", "real-barca"],
+  ["finishers", "baseball-films", "mlb-asg-2026", "pga-events-2026", "nba-no1-pre2000", "gym-aa-women", "ucl-final-cities"],
+  ["club-nicknames", "trophies", "cws-champs", "cycling-events", "pitch-types", "nfl-r1-2026", "ncaa-covers"],
+  ["basketball-films", "stat-abbrevs", "winter-disciplines", "golf-brands", "bc-classic", "formations", "fifa-covers"],
+  ["former-arenas", "pl-grounds", "naismith", "apparel", "combat-sports", "mlb-managers-2026", "walkoff-ws"],
 ];
 
-/** Prompts built but not yet in a day. */
 export const BANKED: string[] = [];
 
 export function promptsForSet(set: number): string[] {

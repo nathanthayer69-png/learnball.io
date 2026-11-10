@@ -840,7 +840,7 @@ export const BATCH4_PROMPTS: Prompt[] = [
   {
     id: "mascots",
     sport: "🦁 Mascots",
-    text: "Name a pro team mascot",
+    text: "Name an NFL, NBA, MLB or NHL mascot",
     rule: "Current NFL, NBA, MLB or NHL mascots.",
     answers: {
       casual: [

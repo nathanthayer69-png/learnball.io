@@ -1054,8 +1054,8 @@ export const BATCH10_PROMPTS: Prompt[] = [
   {
     id: "college-stadium-75k",
     sport: "🏈 College",
-    text: "Name a college football stadium that seats 75,000+",
-    rule: "Listed capacity of 75,000 or more, 2026.",
+    text: "Name a college football stadium that seats 70,000+",
+    rule: "A school's home stadium with a listed capacity of 70,000 or more, 2026.",
     answers: {
       casual: [
         "Michigan Stadium|the big house",
@@ -1079,6 +1079,10 @@ export const BATCH10_PROMPTS: Prompt[] = [
         "Clemson Memorial Stadium|frank howard field|death valley clemson",
         "Gaylord Family Oklahoma Memorial Stadium|owen field|oklahoma memorial stadium",
         "Williams-Brice Stadium|williams brice stadium",
+        "Camp Randall Stadium|camp randall",
+        "Spartan Stadium",
+        "Donald W. Reynolds Razorback Stadium|razorback stadium|reynolds razorback stadium",
+        "Husky Stadium",
       ],
       film: [],
       diehard: [],
