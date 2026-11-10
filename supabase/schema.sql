@@ -1,4 +1,4 @@
--- LearnBall database. Run once in Supabase: SQL Editor → New query → paste → Run.
+-- LearnBall database (applied to the Learnball.io Supabase project on 2026-11-09).
 -- Players can only ADD rows (no reading), and the rank comes from a function that returns counts only.
 
 create table if not exists public.plays (
@@ -42,11 +42,11 @@ alter table public.guesses enable row level security;
 alter table public.reports enable row level security;
 
 drop policy if exists "players add plays" on public.plays;
-create policy "players add plays" on public.plays for insert to anon with check (true);
+create policy "players add plays" on public.plays for insert to anon with check (char_length(day) = 10 and char_length(player) <= 64);
 drop policy if exists "players add guesses" on public.guesses;
-create policy "players add guesses" on public.guesses for insert to anon with check (true);
+create policy "players add guesses" on public.guesses for insert to anon with check (char_length(guess) <= 120 and char_length(prompt_id) <= 64);
 drop policy if exists "players add reports" on public.reports;
-create policy "players add reports" on public.reports for insert to anon with check (true);
+create policy "players add reports" on public.reports for insert to anon with check (char_length(guess) <= 120 and char_length(prompt_id) <= 64);
 
 -- Top X% today: share of today's players who scored strictly higher, rounded up (min 1%).
 create or replace function public.score_rank(p_day text, p_score int)
@@ -59,7 +59,7 @@ $$;
 grant execute on function public.score_rank(text, int) to anon;
 
 -- Handy views for you (not visible to players): the most common misses per question.
-create or replace view public.top_misses as
+create or replace view public.top_misses with (security_invoker = true) as
   select prompt_id, lower(guess) as guess, count(*) as times
   from guesses where matched is null and not test
   group by 1, 2 order by times desc;

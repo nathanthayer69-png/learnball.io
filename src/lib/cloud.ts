@@ -3,19 +3,18 @@
  * Uses the plain REST API (no SDK). Everything is fire-and-forget: if Supabase isn't
  * set up yet, or the network fails, the game carries on exactly the same.
  *
- * Setup: put your Project URL and anon public key below (the anon key is meant to be public;
- * row-level security in supabase/schema.sql only lets players add rows, never read them).
+ * Project: Learnball.io (schema in supabase/schema.sql).
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
+// Publishable key: safe to ship in the app. Row-level security only lets players add rows.
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://rgjuievgykevjmbmtcla.supabase.co";
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_q8o12LZqX4y6AcGM9PvguQ_YAW3dSs-";
 
 export const cloudEnabled = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 const headers = () => ({
   apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
 });
 
