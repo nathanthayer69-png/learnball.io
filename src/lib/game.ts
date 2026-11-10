@@ -62,10 +62,10 @@ export function gameNumber(day = todayET()): number {
 // ---------- Score -> title and venue ----------
 
 export const RESULT_TITLES = [
-  { min: 560, title: "Certified Ball Knower" },
-  { min: 420, title: "You're a Die Hard" },
-  { min: 280, title: "You're a Film Watcher" },
-  { min: 140, title: "You're a Fan" },
+  { min: 500, title: "Certified Ball Knower" },
+  { min: 380, title: "You're a Die Hard" },
+  { min: 260, title: "You're a Film Watcher" },
+  { min: 150, title: "You're a Fan" },
   { min: 0, title: "You're a Casual" },
 ];
 
@@ -75,14 +75,17 @@ export function titleForScore(score: number): string {
 
 export type Level = { id: string; name: string; emoji: string; start: number; end: number };
 
-/** The climb: Backyard to the Hall of Fame. Each level is 140 points (Hall of Fame at 680+). */
+/**
+ * The climb: Backyard to the Hall of Fame. Early levels come fast, the top stays special.
+ * Rough targets: casual fan → High School, regular fan → College/Pros, diehard on a great day → Hall of Fame.
+ */
 export const LEVELS: Level[] = [
-  { id: "backyard", name: "Backyard", emoji: "🏡", start: 0, end: 140 },
-  { id: "highschool", name: "High School", emoji: "🏫", start: 140, end: 280 },
-  { id: "college", name: "College", emoji: "🎓", start: 280, end: 420 },
-  { id: "pros", name: "The Pros", emoji: "🏟️", start: 420, end: 560 },
-  { id: "allstar", name: "All-Star", emoji: "⭐", start: 560, end: 680 },
-  { id: "hall", name: "Hall of Fame", emoji: "🏆", start: 680, end: 701 },
+  { id: "backyard", name: "Backyard", emoji: "🏡", start: 0, end: 60 },
+  { id: "highschool", name: "High School", emoji: "🏫", start: 60, end: 150 },
+  { id: "college", name: "College", emoji: "🎓", start: 150, end: 260 },
+  { id: "pros", name: "The Pros", emoji: "🏟️", start: 260, end: 380 },
+  { id: "allstar", name: "All-Star", emoji: "⭐", start: 380, end: 500 },
+  { id: "hall", name: "Hall of Fame", emoji: "🏆", start: 500, end: 701 },
 ];
 
 export function levelIndexForScore(score: number): number {

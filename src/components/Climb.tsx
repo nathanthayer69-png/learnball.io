@@ -11,7 +11,7 @@ import { LEVELS, MAX_SCORE, levelIndexForScore } from "@/lib/game";
 import { C, F } from "@/theme";
 
 const BAND = 150; // world height of one level
-const PTS_PER_STEP = 20;
+const STEPS_PER_LEVEL = 7;
 const PX = 3; // runner pixel size
 const RUNNER_W = 12 * PX;
 const RUNNER_H = 13 * PX;
@@ -79,15 +79,27 @@ function buildPath(width: number): Key[] {
       keys.push({ pts: MAX_SCORE, x: xAt(0.5), y: bottom });
       return;
     }
-    const n = (lv.end - lv.start) / PTS_PER_STEP;
+    const n = STEPS_PER_LEVEL;
+    const size = (lv.end - lv.start) / n;
     const rise = BAND / n;
     for (let k = 0; k < n; k++) {
-      const p = lv.start + k * PTS_PER_STEP;
+      const p = lv.start + k * size;
       keys.push({ pts: p, x: xAt(k / n), y: bottom - k * rise });
-      keys.push({ pts: p + 14, x: xAt((k + 0.7) / n), y: bottom - k * rise });
+      keys.push({ pts: p + size * 0.7, x: xAt((k + 0.7) / n), y: bottom - k * rise });
     }
   });
   return keys;
+}
+
+/** How many stairs are behind you at this score (for footstep sounds). */
+function stepIndex(score: number): number {
+  let n = 0;
+  for (const lv of LEVELS) {
+    if (lv.id === "hall") break;
+    const size = (lv.end - lv.start) / STEPS_PER_LEVEL;
+    n += Math.max(0, Math.min(STEPS_PER_LEVEL, Math.floor((score - lv.start) / size)));
+  }
+  return n;
 }
 
 // ---------- Scenery for each level ----------
@@ -273,7 +285,7 @@ export const Climb = memo(function Climb({ score, height, missKey = 0, replay, c
   const [shown, setShown] = useState(replay ? 0 : Math.min(score, MAX_SCORE));
   const [bannerLevel, setBannerLevel] = useState<number | null>(null);
   const lastLevel = useRef(levelIndexForScore(replay ? 0 : score));
-  const lastStep = useRef(Math.floor((replay ? 0 : score) / PTS_PER_STEP));
+  const lastStep = useRef(stepIndex(replay ? 0 : score));
   const onLevelUpRef = useRef(onLevelUp);
   onLevelUpRef.current = onLevelUp;
 
@@ -285,7 +297,7 @@ export const Climb = memo(function Climb({ score, height, missKey = 0, replay, c
       setFrame(Math.floor(value / 5) % 2 ? 1 : 0);
       const lv = levelIndexForScore(value);
       setFacing(lv % 2 === 0 ? 1 : -1);
-      const st = Math.floor(value / PTS_PER_STEP);
+      const st = stepIndex(value);
       if (st > lastStep.current) sfx.step(st);
       lastStep.current = st;
       if (lv > lastLevel.current) {
