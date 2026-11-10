@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
+import { AppActions } from "@/components/AppActions";
 import { PixelButton, PixelTitle, Scanlines, SoundToggles } from "@/components/ui";
 import { music, sfx } from "@/lib/audio";
 import { DAYS } from "@/data/schedule";
@@ -147,6 +148,8 @@ export default function Home() {
                 sfx.click();
                 router.push(replay ? "/play?reset=1" : "/play");
               }} style={{ marginTop: 18 }} />
+
+            <AppActions />
 
             {UNLIMITED_PLAY && (
               <View style={styles.picker}>

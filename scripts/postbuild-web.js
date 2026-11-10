@@ -9,6 +9,12 @@ const img = `${url}/og.png`;
 const tags = [
   `<meta name="description" content="${desc}">`,
   `<meta name="theme-color" content="#0a1022">`,
+  `<link rel="manifest" href="/manifest.webmanifest">`,
+  `<link rel="apple-touch-icon" href="/apple-touch-icon.png">`,
+  `<meta name="apple-mobile-web-app-capable" content="yes">`,
+  `<meta name="mobile-web-app-capable" content="yes">`,
+  `<meta name="apple-mobile-web-app-title" content="LearnBall">`,
+  `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`,
   `<meta property="og:type" content="website">`,
   `<meta property="og:site_name" content="LearnBall">`,
   `<meta property="og:title" content="${title}">`,

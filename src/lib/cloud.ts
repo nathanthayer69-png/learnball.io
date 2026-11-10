@@ -20,7 +20,7 @@ const headers = () => ({
 
 /** An anonymous id for this browser, so one player counts once per day. */
 let playerId: string | null = null;
-async function getPlayer(): Promise<string> {
+export async function getPlayer(): Promise<string> {
   if (playerId) return playerId;
   try {
     let id = await AsyncStorage.getItem("learnball:player");

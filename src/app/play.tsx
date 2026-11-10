@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 
+import { AppActions } from "@/components/AppActions";
 import { Climb } from "@/components/Climb";
 import { Chip, PixelButton, Scanlines, SoundToggles } from "@/components/ui";
 import { promptById, promptsForSet } from "@/data/schedule";
@@ -450,6 +451,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
           )}
 
           <PixelButton big label={copied ? "COPIED! ✓" : canShare ? "SHARE RESULT" : "COPY RESULT"} onPress={share} style={{ marginTop: 22 }} />
+          <AppActions compact />
           {UNLIMITED_PLAY && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
 
           <View style={{ marginTop: 24, gap: 12 }}>

@@ -1,0 +1,11 @@
+-- Daily reminder notifications (applied 2026-11-09 to the Learnball.io project).
+-- Secrets (VAPID keys, cron key) live in Supabase Vault: vapid_public, vapid_private, push_cron_key.
+-- Table: public.push_subs (endpoint pk, p256dh, auth, player, last_sent). Insert/delete via
+--   rpc push_subscribe / push_unsubscribe (security definer, anon). push_config() is service-role only.
+-- Edge function: daily-push (supabase/functions/daily-push/index.ts), verify_jwt off, checks x-cron-key.
+-- Schedule (pg_cron): 'learnball-daily-reminder' at 14:07 UTC daily (9:07am Eastern standard time).
+-- Send a one-off message to everyone:
+--   select net.http_post(url := 'https://rgjuievgykevjmbmtcla.supabase.co/functions/v1/daily-push',
+--     headers := jsonb_build_object('Content-Type','application/json','x-cron-key',
+--       (select decrypted_secret from vault.decrypted_secrets where name = 'push_cron_key')),
+--     body := '{"message":"Your custom text"}'::jsonb);
