@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
 
+import { setAudioPref, useAudioPrefs } from "@/lib/audio";
 import { C, F } from "@/theme";
 
 /** Faint CRT scanlines over the whole screen. Memoized so the game clock doesn't redraw them. */
@@ -82,3 +83,24 @@ const styles = StyleSheet.create({
   btnHover: { backgroundColor: "#1c2a4d", transform: [{ translateY: -1 }] },
   btnText: { fontFamily: F.pixel, fontSize: 11, color: C.text, letterSpacing: 2 },
 });
+
+/** Sound and music on/off buttons. */
+export function SoundToggles() {
+  const prefs = useAudioPrefs();
+  const item = (label: string, on: boolean, key: "sound" | "music") => (
+    <Pressable
+      key={key}
+      onPress={() => setAudioPref(key, !on)}
+      accessibilityLabel={`${key} ${on ? "on" : "off"}`}
+      style={{ borderWidth: 2, borderColor: on ? C.border : C.dim, paddingHorizontal: 7, paddingVertical: 5 }}
+    >
+      <Text style={{ fontFamily: F.pixel, fontSize: 8, color: on ? C.text : C.dim, letterSpacing: 1, textDecorationLine: on ? "none" : "line-through" }}>{label}</Text>
+    </Pressable>
+  );
+  return (
+    <View style={{ flexDirection: "row", gap: 6 }}>
+      {item("SFX", prefs.sound, "sound")}
+      {item("♪", prefs.music, "music")}
+    </View>
+  );
+}

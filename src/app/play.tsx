@@ -2,13 +2,14 @@ import type React from "react";
 import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 
-import { Chip, PixelButton, Scanlines } from "@/components/ui";
-import { VenueMap } from "@/components/VenueMap";
+import { Climb } from "@/components/Climb";
+import { Chip, PixelButton, Scanlines, SoundToggles } from "@/components/ui";
 import { promptById, promptsForSet } from "@/data/schedule";
 import type { Prompt } from "@/data/types";
-import { TIERS } from "@/data/types";
+import { TIERS, TIER_ORDER } from "@/data/types";
+import { buzz, music, sfx } from "@/lib/audio";
 import {
   ANSWER_SECONDS,
   MAX_SCORE,
@@ -24,7 +25,8 @@ import {
   titleForScore,
   todayET,
   totalScore,
-  venueForScore,
+  levelForScore,
+  levelIndexForScore,
   type PromptResult,
   type SavedGame,
 } from "@/lib/game";
@@ -79,6 +81,9 @@ export default function Play() {
   const [wrong, setWrong] = useState<string[]>([]); // wrong guesses on this prompt
   const [notice, setNotice] = useState<string | null>(null);
   const shakeX = useRef(new Animated.Value(0)).current;
+  const [missKey, setMissKey] = useState(0);
+  const lastSecond = useRef(-1);
+  const { width } = useWindowDimensions();
 
   const shake = useCallback(
     (message: string) => {
@@ -165,15 +170,21 @@ export default function Play() {
       const prompt = prompts[game.index];
       const r = matchAnswer(prompt, text);
       if (r.kind === "choose" && !timedOut) {
+        sfx.choose();
         setChoices(r.options);
         return;
       }
       if (r.kind === "hit") {
+        sfx.hit(TIER_ORDER.indexOf(r.answer.tier));
+        buzz(25);
         finish({ promptId: prompt.id, input: text, name: r.answer.name, tier: r.answer.tier, points: r.points });
         return;
       }
       if (timedOut) {
         // Time's up: record the last thing they tried
+        sfx.timesUp();
+        buzz([60, 40, 60]);
+        setMissKey((k) => k + 1);
         finish({ promptId: prompt.id, input: text.trim() || wrong[wrong.length - 1] || "", points: 0 });
         return;
       }
@@ -182,6 +193,9 @@ export default function Play() {
         shake("TYPE AN ANSWER FIRST");
         return;
       }
+      sfx.wrong();
+      buzz([35, 30, 35]);
+      setMissKey((k) => k + 1);
       setWrong((w) => [...w, text.trim()]);
       setInput("");
       shake("NOT ON THE LIST · KEEP GUESSING");
@@ -192,6 +206,8 @@ export default function Play() {
 
   const pick = (a: Answer) => {
     if (!game) return;
+    sfx.hit(TIER_ORDER.indexOf(a.tier));
+    buzz(25);
     finish({ promptId: prompts[game.index].id, input, name: a.name, tier: a.tier, points: TIERS[a.tier].points });
   };
 
@@ -199,7 +215,15 @@ export default function Play() {
   useEffect(() => {
     if (!game || game.done) return;
     const elapsed = now - game.phaseStart;
+    // Countdown ticks: last 3 seconds of reading, last 5 of answering
+    const secLeft = Math.ceil(((game.phase === "read" ? READ_SECONDS : ANSWER_SECONDS) * 1000 - elapsed) / 1000);
+    if (elapsed >= 0 && secLeft !== lastSecond.current) {
+      lastSecond.current = secLeft;
+      if (game.phase === "read" && secLeft >= 1 && secLeft <= 3) sfx.tick(false);
+      if (game.phase === "answer" && secLeft >= 1 && secLeft <= 5) sfx.tick(true);
+    }
     if (game.phase === "read" && elapsed >= READ_SECONDS * 1000) {
+      sfx.go();
       update({ ...game, phase: "answer", phaseStart: game.phaseStart + READ_SECONDS * 1000 });
       setTimeout(() => inputRef.current?.focus(), 30);
     } else if (game.phase === "answer" && elapsed >= ANSWER_SECONDS * 1000) {
@@ -207,11 +231,19 @@ export default function Play() {
     }
   }, [now, game, input, submit, update]);
 
-  if (!game) return <View style={{ flex: 1, backgroundColor: C.night }} />;
+  const score = game ? totalScore(game.results) : 0;
+  const last = game?.results[game.results.length - 1];
+  const revealing = !!last && !!game && now < game.phaseStart;
+  const answeringNow = !!game && !game.done && game.phase === "answer" && !revealing;
 
-  const score = totalScore(game.results);
-  const last = game.results[game.results.length - 1];
-  const revealing = last && now < game.phaseStart;
+  // Music: plays while you read and during reveals, goes quiet while you type
+  useEffect(() => {
+    if (!game || (game.done && !revealing)) return;
+    music.setLevel(levelIndexForScore(score));
+    music.setMode(answeringNow ? "answer" : "game");
+  }, [game, answeringNow, revealing, score]);
+
+  if (!game) return <View style={{ flex: 1, backgroundColor: C.night }} />;
 
   if (game.done && !revealing) {
     return <Results game={game} onHome={() => router.replace("/")} onReplay={() => router.replace("/play?reset=1")} />;
@@ -234,12 +266,14 @@ export default function Play() {
               <Text style={styles.brand}>LEARNBALL</Text>
             </Pressable>
             <Text style={styles.topText}>
-              PROMPT {Math.min(game.results.length + (revealing ? 0 : 1), prompts.length)}/{prompts.length}
+              {width < 600 ? "Q" : "PROMPT "}
+              {Math.min(game.results.length + (revealing ? 0 : 1), prompts.length)}/{prompts.length}
             </Text>
             <Text style={styles.topText}>{score} PTS</Text>
+            <SoundToggles />
           </View>
 
-          <VenueMap score={score} />
+          <Climb score={score} height={width < 600 ? 140 : 180} missKey={missKey} onLevelUp={(l) => sfx.levelUp(l)} />
 
           {/* Prompt */}
           <PromptCard prompt={prompt} />
@@ -338,7 +372,15 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
   }, []);
 
   const score = totalScore(game.results);
-  const venue = venueForScore(score);
+  const level = levelForScore(score);
+  const [replayKey, setReplayKey] = useState(0);
+  const totals = game.results.reduce<number[]>((acc, r) => [...acc, (acc[acc.length - 1] ?? 0) + r.points], []);
+  useEffect(() => {
+    music.setLevel(levelIndexForScore(score));
+    music.setMode("results");
+    sfx.finish();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const s = secondsToNextGame();
   const next = `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m`;
 
@@ -359,11 +401,14 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
             <Text style={{ color: C.muted, fontSize: 18 }}> / {MAX_SCORE}</Text>
           </Text>
           <Text style={styles.resultVenue}>
-            You made it to the {venue.name} {venue.emoji}
+            You made it to {level.id === "pros" ? "the Pros" : level.id === "hall" ? "the Hall of Fame" : level.name} {level.emoji}
           </Text>
 
           <View style={{ marginTop: 18 }}>
-            <VenueMap score={score} showLabels={false} />
+            <Climb key={replayKey} score={score} height={300} replay={totals} counter onLevelUp={(l) => sfx.levelUp(l)} />
+            <Pressable onPress={() => setReplayKey((k) => k + 1)} style={{ alignSelf: "center", marginTop: 10 }}>
+              <Text style={styles.replayLink}>↻ WATCH THE CLIMB AGAIN</Text>
+            </Pressable>
           </View>
 
           <PixelButton big label={copied ? "COPIED! ✓" : "COPY RESULT"} onPress={copy} style={{ marginTop: 22 }} />
@@ -405,7 +450,7 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
 const styles = StyleSheet.create({
   page: { flexGrow: 1, paddingHorizontal: 16, paddingTop: 24, paddingBottom: 48 },
   inner: { width: "100%", maxWidth: 720, alignSelf: "center" },
-  topBar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  topBar: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 10, columnGap: 12, marginBottom: 16 },
   brand: { fontFamily: F.pixel, fontSize: 12, color: C.border, letterSpacing: 2 },
   topText: { fontFamily: F.pixel, fontSize: 10, color: C.muted, letterSpacing: 1 },
   card: { marginTop: 22, padding: 18, borderWidth: 3, borderColor: C.dim, backgroundColor: C.panel, gap: 14 },
@@ -434,5 +479,6 @@ const styles = StyleSheet.create({
   rowAnswer: { fontFamily: F.mono, fontSize: 24, color: C.text },
   rowTier: { fontFamily: F.mono, fontSize: 21 },
   rowCuts: { fontFamily: F.mono, fontSize: 18, color: C.dim },
+  replayLink: { fontFamily: F.pixel, fontSize: 9, color: C.muted, letterSpacing: 2 },
   nextGame: { fontFamily: F.pixel, fontSize: 10, color: C.muted, textAlign: "center", marginTop: 28, letterSpacing: 2 },
 });

@@ -2,7 +2,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
-import { PixelButton, PixelTitle, Scanlines } from "@/components/ui";
+import { PixelButton, PixelTitle, Scanlines, SoundToggles } from "@/components/ui";
+import { music, sfx } from "@/lib/audio";
 import { DAYS } from "@/data/schedule";
 import { TIERS, TIER_ORDER } from "@/data/types";
 import { ANSWER_SECONDS, UNLIMITED_PLAY, gameNumber, loadGame, loadStreak, todayET } from "@/lib/game";
@@ -67,6 +68,14 @@ export default function Home() {
   const day = todayET();
   const titleSize = width < 420 ? 22 : width < 700 ? 30 : 40;
 
+  // Menu music (starts on the first tap anywhere; browsers require it)
+  useFocusEffect(
+    useCallback(() => {
+      music.setLevel(3);
+      music.setMode("menu");
+    }, []),
+  );
+
   useFocusEffect(
     useCallback(() => {
       loadGame(day).then((g) => setStatus(!g ? "new" : g.done ? "done" : "playing"));
@@ -116,11 +125,14 @@ export default function Home() {
                     {TIERS[t].emoji} {TIERS[t].name} · {TIERS[t].points}
                   </Text>
                 ))}
-                <Text style={styles.howLine}>Your score moves you from the football field all the way to the Hall of Fame.</Text>
+                <Text style={styles.howLine}>Every point moves your player up the stands: Backyard, High School, College, the Pros, All-Star, and finally the Hall of Fame.</Text>
               </View>
             )}
 
-            <PixelButton big size={narrow ? 13 : undefined} label={label} onPress={() => router.push(replay ? "/play?reset=1" : "/play")} style={{ marginTop: 18 }} />
+            <PixelButton big size={narrow ? 13 : undefined} label={label} onPress={() => {
+                sfx.click();
+                router.push(replay ? "/play?reset=1" : "/play");
+              }} style={{ marginTop: 18 }} />
 
             {UNLIMITED_PLAY && (
               <View style={styles.picker}>
@@ -137,6 +149,7 @@ export default function Home() {
               <Text style={styles.footText}>
                 GAME #{gameNumber(day)} · STREAK {streak}
               </Text>
+              <SoundToggles />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, maxWidth: "100%" }}>
                 <PixelButton label={narrow ? "ARCHIVE·SOON" : "ARCHIVE · SOON"} size={narrow ? 9 : undefined} disabled />
                 <PixelButton label={narrow ? "PACKS·SOON" : "PACKS · SOON"} size={narrow ? 9 : undefined} disabled />

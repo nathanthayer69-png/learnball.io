@@ -7,8 +7,23 @@ export const REVEAL_MS = 2400;
 export const MAX_SCORE = 700;
 export const LAUNCH_DAY = "2026-11-09"; // Game #1
 
-/** TESTING: lets you replay as many times as you want. Set to false before launch. */
-export const UNLIMITED_PLAY = true;
+/**
+ * Testing mode: replay as often as you like and pick any day.
+ * Off for players. Turn it on in your browser with learnball.io/?test=1 (and off with ?test=0).
+ * It's remembered on that browser only.
+ */
+function readTestMode(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    const q = new URLSearchParams(window.location.search).get("test");
+    if (q === "1") window.localStorage.setItem("learnball:test", "1");
+    if (q === "0") window.localStorage.removeItem("learnball:test");
+    return window.localStorage.getItem("learnball:test") === "1";
+  } catch {
+    return false;
+  }
+}
+export const UNLIMITED_PLAY = readTestMode();
 
 export type PromptResult = {
   promptId: string;
@@ -58,19 +73,25 @@ export function titleForScore(score: number): string {
   return RESULT_TITLES.find((t) => score >= t.min)!.title;
 }
 
-export type Venue = { id: string; name: string; emoji: string; start: number; end: number };
+export type Level = { id: string; name: string; emoji: string; start: number; end: number };
 
-export const VENUES: Venue[] = [
-  { id: "football", name: "Football Field", emoji: "🏈", start: 0, end: 140 },
-  { id: "baseball", name: "Baseball Diamond", emoji: "⚾", start: 140, end: 280 },
-  { id: "hockey", name: "Hockey Rink", emoji: "🏒", start: 280, end: 420 },
-  { id: "basketball", name: "Basketball Court", emoji: "🏀", start: 420, end: 560 },
-  { id: "golf", name: "Golf Course", emoji: "⛳", start: 560, end: 680 },
-  { id: "hall", name: "Hall of Fame", emoji: "🏛️", start: 680, end: 701 },
+/** The climb: Backyard to the Hall of Fame. Each level is 140 points (Hall of Fame at 680+). */
+export const LEVELS: Level[] = [
+  { id: "backyard", name: "Backyard", emoji: "🏡", start: 0, end: 140 },
+  { id: "highschool", name: "High School", emoji: "🏫", start: 140, end: 280 },
+  { id: "college", name: "College", emoji: "🎓", start: 280, end: 420 },
+  { id: "pros", name: "The Pros", emoji: "🏟️", start: 420, end: 560 },
+  { id: "allstar", name: "All-Star", emoji: "⭐", start: 560, end: 680 },
+  { id: "hall", name: "Hall of Fame", emoji: "🏆", start: 680, end: 701 },
 ];
 
-export function venueForScore(score: number): Venue {
-  return VENUES.find((v) => score >= v.start && score < v.end) ?? VENUES[VENUES.length - 1];
+export function levelIndexForScore(score: number): number {
+  const i = LEVELS.findIndex((v) => score >= v.start && score < v.end);
+  return i < 0 ? LEVELS.length - 1 : i;
+}
+
+export function levelForScore(score: number): Level {
+  return LEVELS[levelIndexForScore(score)];
 }
 
 export function totalScore(results: PromptResult[]) {
@@ -80,11 +101,11 @@ export function totalScore(results: PromptResult[]) {
 export function shareText(day: string, results: PromptResult[]): string {
   const score = totalScore(results);
   const row = results.map((r) => (r.tier ? TIERS[r.tier].emoji : "❌")).join("");
-  const venue = venueForScore(score);
+  const level = levelForScore(score);
   return [
     `LearnBall #${gameNumber(day)} · ${titleForScore(score)}`,
     `${row} ${score}/${MAX_SCORE}`,
-    `Reached the ${venue.name} ${venue.emoji}`,
+    `Made it to ${level.id === "pros" ? "The Pros" : level.name} ${level.emoji}`,
     "learnball.io",
   ].join("\n");
 }
