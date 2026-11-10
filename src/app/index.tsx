@@ -169,6 +169,7 @@ export default function Home() {
               <SoundToggles />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, maxWidth: "100%" }}>
                 <PixelButton label="STATS" size={narrow ? 9 : undefined} onPress={() => router.push("/stats")} />
+                <PixelButton label="ARCHIVE" size={narrow ? 9 : undefined} onPress={() => router.push("/archive")} />
                 <PixelButton label={narrow ? "PACKS·SOON" : "PACKS · SOON"} size={narrow ? 9 : undefined} disabled />
               </View>
             </View>

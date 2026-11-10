@@ -42,6 +42,7 @@ export type SavedGame = {
   phaseStart: number; // ms timestamp, so a refresh can't buy extra time
   results: PromptResult[];
   done: boolean;
+  archive?: number; // set when this is a past game played from the archive (its game number)
 };
 
 /** Today's date in Eastern Time, "YYYY-MM-DD". New game at midnight ET. */
@@ -116,12 +117,18 @@ export function shareText(day: string, results: PromptResult[], rank?: { players
 
 // ---------- Saving progress ----------
 
-const gameKey = (day: string) => `learnball:game:${day}`;
+const gameKey = (day: string, archive?: number) => (archive ? `learnball:archive:${archive}` : `learnball:game:${day}`);
+
+/** The calendar day (ET) of game #n. */
+export function dayForGame(n: number): string {
+  const d = new Date(Date.parse(LAUNCH_DAY + "T12:00:00Z") + (n - 1) * 86400000);
+  return d.toISOString().slice(0, 10);
+}
 const STREAK_KEY = "learnball:streak";
 
-export async function loadGame(day: string): Promise<SavedGame | null> {
+export async function loadGame(day: string, archive?: number): Promise<SavedGame | null> {
   try {
-    const raw = await AsyncStorage.getItem(gameKey(day));
+    const raw = await AsyncStorage.getItem(gameKey(day, archive));
     return raw ? (JSON.parse(raw) as SavedGame) : null;
   } catch {
     return null;
@@ -130,13 +137,13 @@ export async function loadGame(day: string): Promise<SavedGame | null> {
 
 export async function saveGame(game: SavedGame) {
   try {
-    await AsyncStorage.setItem(gameKey(game.day), JSON.stringify(game));
+    await AsyncStorage.setItem(gameKey(game.day, game.archive), JSON.stringify(game));
   } catch {}
 }
 
-export async function clearGame(day: string) {
+export async function clearGame(day: string, archive?: number) {
   try {
-    await AsyncStorage.removeItem(gameKey(day));
+    await AsyncStorage.removeItem(gameKey(day, archive));
   } catch {}
 }
 

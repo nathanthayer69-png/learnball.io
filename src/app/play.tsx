@@ -27,6 +27,7 @@ import {
   shareText,
   titleForScore,
   todayET,
+  dayForGame,
   totalScore,
   levelForScore,
   levelIndexForScore,
@@ -36,7 +37,8 @@ import {
 import { deepCuts, matchAnswer, type Answer } from "@/lib/match";
 import { C, F } from "@/theme";
 
-const freshGame = (day: string, set: number): SavedGame => ({
+const freshGame = (day: string, set: number, archive?: number): SavedGame => ({
+  archive,
   day,
   set,
   promptIds: promptsForSet(set),
@@ -73,7 +75,8 @@ const PromptCard = memo(function PromptCard({ prompt }: { prompt: Prompt }) {
 
 export default function Play() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ reset?: string; set?: string }>();
+  const params = useLocalSearchParams<{ reset?: string; set?: string; archive?: string }>();
+  const archiveN = Number(params.archive) || 0;
   const day = todayET();
   const [game, setGame] = useState<SavedGame | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -102,6 +105,17 @@ export default function Play() {
   // Load (or start) today's game
   useEffect(() => {
     (async () => {
+      if (archiveN >= 1 && (archiveN < gameNumber(day) || UNLIMITED_PLAY)) {
+        // A past game from the archive: its own save slot, never counts toward streaks or rankings
+        const aday = dayForGame(archiveN);
+        let ag = await loadGame(aday, archiveN);
+        if (!ag) {
+          ag = freshGame(aday, archiveN - 1, archiveN);
+          await saveGame(ag);
+        }
+        setGame(ag);
+        return;
+      }
       const daily = gameNumber(day) - 1;
       let saved = await loadGame(day);
       if (saved && !saved.promptIds) saved = { ...saved, set: 0, promptIds: promptsForSet(0) }; // older saves
@@ -128,7 +142,7 @@ export default function Play() {
       setGame(g);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day, params.reset, params.set]);
+  }, [day, params.reset, params.set, params.archive]);
 
   // Clock
   useEffect(() => {
@@ -157,7 +171,7 @@ export default function Play() {
         phaseStart: Date.now() + REVEAL_MS, // next read starts after the reveal
         done,
       });
-      if (done) {
+      if (done && !game.archive) {
         recordFinish(game.day);
         const final = totalScore(results);
         recordPlay(game.day, final);
@@ -257,7 +271,12 @@ export default function Play() {
   if (!game) return <View style={{ flex: 1, backgroundColor: C.night }} />;
 
   if (game.done && !revealing) {
-    return <Results game={game} onHome={() => router.replace("/")} onReplay={() => router.replace("/play?reset=1")} onStats={() => router.push("/stats")} />;
+    return <Results
+        game={game}
+        onHome={() => router.replace("/")}
+        onReplay={() => router.replace("/play?reset=1")}
+        onStats={() => router.push(game.archive ? "/archive" : "/stats")}
+      />;
   }
 
   const prompt = revealing ? promptById(last.promptId)! : prompts[game.index];
@@ -398,7 +417,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
   const next = `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m`;
 
   useEffect(() => {
-    if (cloudEnabled) {
+    if (cloudEnabled && !game.archive) {
       // give our own score a moment to land first
       const t = setTimeout(() => fetchRank(game.day, score).then(setRank), 1200);
       return () => clearTimeout(t);
@@ -406,7 +425,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const text = shareText(game.day, game.results, rank);
+  const text = shareText(game.day, game.results, rank) + (game.archive ? "\n(played from the archive)" : "");
   const canShare = typeof navigator !== "undefined" && !!(navigator as any).share && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
   const share = async () => {
     sfx.click();
@@ -427,7 +446,10 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
     <View style={{ flex: 1, backgroundColor: C.night }}>
       <ScrollView contentContainerStyle={styles.page}>
         <View style={styles.inner}>
-          <Text style={styles.brandCenter}>LEARNBALL #{gameNumber(game.day)}</Text>
+          <Text style={styles.brandCenter}>
+            LEARNBALL #{gameNumber(game.day)}
+            {game.archive ? " · ARCHIVE" : ""}
+          </Text>
           <Text style={styles.resultTitle}>{titleForScore(score).toUpperCase()}</Text>
           <Text style={styles.resultScore}>
             {score}
@@ -452,7 +474,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
 
           <PixelButton big label={copied ? "COPIED! ✓" : canShare ? "SHARE RESULT" : "COPY RESULT"} onPress={share} style={{ marginTop: 22 }} />
           <AppActions compact />
-          {UNLIMITED_PLAY && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
+          {UNLIMITED_PLAY && !game.archive && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
 
           <View style={{ marginTop: 24, gap: 12 }}>
             {game.results.map((r, i) => {
@@ -486,10 +508,10 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
             })}
           </View>
 
-          {!UNLIMITED_PLAY && <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>}
+          {!UNLIMITED_PLAY && !game.archive && <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>}
           <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
             <PixelButton label="◀ HOME" onPress={onHome} style={{ flex: 1 }} />
-            <PixelButton label="STATS" onPress={onStats} style={{ flex: 1 }} />
+            <PixelButton label={game.archive ? "ARCHIVE" : "STATS"} onPress={onStats} style={{ flex: 1 }} />
             {UNLIMITED_PLAY && <PixelButton label="PLAY AGAIN ▶" onPress={onReplay} style={{ flex: 1 }} />}
           </View>
         </View>
