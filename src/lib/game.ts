@@ -101,7 +101,7 @@ export function totalScore(results: PromptResult[]) {
   return results.reduce((s, r) => s + r.points, 0);
 }
 
-export function shareText(day: string, results: PromptResult[]): string {
+export function shareText(day: string, results: PromptResult[], rank?: { players: number; topPct: number } | null): string {
   const score = totalScore(results);
   const row = results.map((r) => (r.tier ? TIERS[r.tier].emoji : "❌")).join("");
   const level = levelForScore(score);
@@ -109,6 +109,7 @@ export function shareText(day: string, results: PromptResult[]): string {
     `LearnBall #${gameNumber(day)} · ${titleForScore(score)}`,
     `${row} ${score}/${MAX_SCORE}`,
     `Made it to ${level.id === "pros" ? "The Pros" : level.name} ${level.emoji}`,
+    ...(rank && rank.players >= 10 ? [`Top ${rank.topPct}% today`] : []),
     "learnball.io",
   ].join("\n");
 }
@@ -163,4 +164,40 @@ export async function recordFinish(day: string) {
     const count = s && s.last === yesterday ? s.count + 1 : 1;
     await AsyncStorage.setItem(STREAK_KEY, JSON.stringify({ last: day, count }));
   } catch {}
+}
+
+// ---------- Stats (kept on this device) ----------
+
+export type PlayRecord = { day: string; score: number; level: number };
+const HISTORY_KEY = "learnball:history";
+const BEST_STREAK_KEY = "learnball:bestStreak";
+
+export async function loadHistory(): Promise<PlayRecord[]> {
+  try {
+    const raw = await AsyncStorage.getItem(HISTORY_KEY);
+    return raw ? (JSON.parse(raw) as PlayRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Save a finished game (once per day; test replays overwrite that day). */
+export async function recordPlay(day: string, score: number) {
+  try {
+    const list = (await loadHistory()).filter((r) => r.day !== day);
+    list.push({ day, score, level: levelIndexForScore(score) });
+    list.sort((a, b) => a.day.localeCompare(b.day));
+    await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    const streak = await loadStreak();
+    const best = Number((await AsyncStorage.getItem(BEST_STREAK_KEY)) ?? 0);
+    if (streak > best) await AsyncStorage.setItem(BEST_STREAK_KEY, String(streak));
+  } catch {}
+}
+
+export async function loadBestStreak(): Promise<number> {
+  try {
+    return Number((await AsyncStorage.getItem(BEST_STREAK_KEY)) ?? 0);
+  } catch {
+    return 0;
+  }
 }

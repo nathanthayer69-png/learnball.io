@@ -10,6 +10,7 @@ import { promptById, promptsForSet } from "@/data/schedule";
 import type { Prompt } from "@/data/types";
 import { TIERS, TIER_ORDER } from "@/data/types";
 import { buzz, music, sfx } from "@/lib/audio";
+import { cloudEnabled, fetchRank, logGuess, reportAnswer, submitPlay, type Rank } from "@/lib/cloud";
 import {
   ANSWER_SECONDS,
   MAX_SCORE,
@@ -20,6 +21,7 @@ import {
   gameNumber,
   loadGame,
   recordFinish,
+  recordPlay,
   saveGame,
   shareText,
   titleForScore,
@@ -154,7 +156,12 @@ export default function Play() {
         phaseStart: Date.now() + REVEAL_MS, // next read starts after the reveal
         done,
       });
-      if (done) recordFinish(game.day);
+      if (done) {
+        recordFinish(game.day);
+        const final = totalScore(results);
+        recordPlay(game.day, final);
+        submitPlay({ day: game.day, game: gameNumber(game.day), set: game.set, score: final, results, test: UNLIMITED_PLAY });
+      }
       setInput("");
       setChoices(null);
       setWrong([]);
@@ -169,6 +176,8 @@ export default function Play() {
       if (!game || game.done || game.phase !== "answer") return;
       const prompt = prompts[game.index];
       const r = matchAnswer(prompt, text);
+      if (r.kind !== "choose" && r.kind !== "empty")
+        logGuess({ day: game.day, promptId: prompt.id, guess: text, matched: r.kind === "hit" ? r.answer.name : undefined, tier: r.kind === "hit" ? r.answer.tier : undefined, test: UNLIMITED_PLAY });
       if (r.kind === "choose" && !timedOut) {
         sfx.choose();
         setChoices(r.options);
@@ -208,6 +217,7 @@ export default function Play() {
     if (!game) return;
     sfx.hit(TIER_ORDER.indexOf(a.tier));
     buzz(25);
+    logGuess({ day: game.day, promptId: prompts[game.index].id, guess: input, matched: a.name, tier: a.tier, test: UNLIMITED_PLAY });
     finish({ promptId: prompts[game.index].id, input, name: a.name, tier: a.tier, points: TIERS[a.tier].points });
   };
 
@@ -246,7 +256,7 @@ export default function Play() {
   if (!game) return <View style={{ flex: 1, backgroundColor: C.night }} />;
 
   if (game.done && !revealing) {
-    return <Results game={game} onHome={() => router.replace("/")} onReplay={() => router.replace("/play?reset=1")} />;
+    return <Results game={game} onHome={() => router.replace("/")} onReplay={() => router.replace("/play?reset=1")} onStats={() => router.push("/stats")} />;
   }
 
   const prompt = revealing ? promptById(last.promptId)! : prompts[game.index];
@@ -363,8 +373,10 @@ function Reveal({ result }: { result: PromptResult }) {
   );
 }
 
-function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => void; onReplay: () => void }) {
+function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome: () => void; onReplay: () => void; onStats: () => void }) {
   const [copied, setCopied] = useState(false);
+  const [rank, setRank] = useState<Rank | null>(null);
+  const [reported, setReported] = useState<Record<string, boolean>>({});
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((n) => n + 1), 1000);
@@ -384,8 +396,28 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
   const s = secondsToNextGame();
   const next = `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m`;
 
-  const copy = async () => {
-    await Clipboard.setStringAsync(shareText(game.day, game.results));
+  useEffect(() => {
+    if (cloudEnabled) {
+      // give our own score a moment to land first
+      const t = setTimeout(() => fetchRank(game.day, score).then(setRank), 1200);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const text = shareText(game.day, game.results, rank);
+  const canShare = typeof navigator !== "undefined" && !!(navigator as any).share && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  const share = async () => {
+    sfx.click();
+    if (canShare) {
+      try {
+        await (navigator as any).share({ text });
+        return;
+      } catch {
+        // cancelled: fall through to copy
+      }
+    }
+    await Clipboard.setStringAsync(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -411,7 +443,13 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
             </Pressable>
           </View>
 
-          <PixelButton big label={copied ? "COPIED! ✓" : "COPY RESULT"} onPress={copy} style={{ marginTop: 22 }} />
+          {rank && (
+            <Text style={styles.rank}>
+              {rank.players < 10 ? `ONE OF THE FIRST ${rank.players} PLAYERS TODAY` : `TOP ${rank.topPct}% OF ${rank.players.toLocaleString()} PLAYERS TODAY`}
+            </Text>
+          )}
+
+          <PixelButton big label={copied ? "COPIED! ✓" : canShare ? "SHARE RESULT" : "COPY RESULT"} onPress={share} style={{ marginTop: 22 }} />
           {UNLIMITED_PLAY && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
 
           <View style={{ marginTop: 24, gap: 12 }}>
@@ -430,6 +468,17 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
                     </Text>
                   </View>
                   <Text style={styles.rowCuts}>Deep cuts: {deepCuts(prompt, 3, r.name).join(", ")}</Text>
+                  {!r.tier && r.input.trim() !== "" && cloudEnabled && (
+                    <Pressable
+                      disabled={reported[r.promptId]}
+                      onPress={() => {
+                        reportAnswer({ day: game.day, promptId: r.promptId, guess: r.input });
+                        setReported((m) => ({ ...m, [r.promptId]: true }));
+                      }}
+                    >
+                      <Text style={styles.report}>{reported[r.promptId] ? "✓ THANKS, WE'LL CHECK IT" : `⚑ "${r.input.trim()}" SHOULD COUNT?`}</Text>
+                    </Pressable>
+                  )}
                 </View>
               );
             })}
@@ -438,6 +487,7 @@ function Results({ game, onHome, onReplay }: { game: SavedGame; onHome: () => vo
           {!UNLIMITED_PLAY && <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>}
           <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
             <PixelButton label="◀ HOME" onPress={onHome} style={{ flex: 1 }} />
+            <PixelButton label="STATS" onPress={onStats} style={{ flex: 1 }} />
             {UNLIMITED_PLAY && <PixelButton label="PLAY AGAIN ▶" onPress={onReplay} style={{ flex: 1 }} />}
           </View>
         </View>
@@ -479,6 +529,8 @@ const styles = StyleSheet.create({
   rowAnswer: { fontFamily: F.mono, fontSize: 24, color: C.text },
   rowTier: { fontFamily: F.mono, fontSize: 21 },
   rowCuts: { fontFamily: F.mono, fontSize: 18, color: C.dim },
+  rank: { fontFamily: F.pixel, fontSize: 10, color: C.green, textAlign: "center", marginTop: 16, letterSpacing: 1, lineHeight: 16 },
+  report: { fontFamily: F.pixel, fontSize: 8, color: C.muted, letterSpacing: 1, marginTop: 4, lineHeight: 14 },
   replayLink: { fontFamily: F.pixel, fontSize: 9, color: C.muted, letterSpacing: 2 },
   nextGame: { fontFamily: F.pixel, fontSize: 10, color: C.muted, textAlign: "center", marginTop: 28, letterSpacing: 2 },
 });

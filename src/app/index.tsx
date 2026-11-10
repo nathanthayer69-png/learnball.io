@@ -1,5 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import { PixelButton, PixelTitle, Scanlines, SoundToggles } from "@/components/ui";
@@ -65,6 +66,19 @@ export default function Home() {
   const [status, setStatus] = useState<"new" | "playing" | "done">("new");
   const [streak, setStreak] = useState(0);
   const [howTo, setHowTo] = useState(false);
+  const [welcome, setWelcome] = useState(false);
+
+  // First visit: show how to play once
+  useEffect(() => {
+    AsyncStorage.getItem("learnball:seenHowTo")
+      .then((v) => !v && setWelcome(true))
+      .catch(() => {});
+  }, []);
+  const closeWelcome = () => {
+    sfx.click();
+    setWelcome(false);
+    AsyncStorage.setItem("learnball:seenHowTo", "1").catch(() => {});
+  };
   const day = todayET();
   const titleSize = width < 420 ? 22 : width < 700 ? 30 : 40;
 
@@ -151,13 +165,32 @@ export default function Home() {
               </Text>
               <SoundToggles />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, maxWidth: "100%" }}>
-                <PixelButton label={narrow ? "ARCHIVE·SOON" : "ARCHIVE · SOON"} size={narrow ? 9 : undefined} disabled />
+                <PixelButton label="STATS" size={narrow ? 9 : undefined} onPress={() => router.push("/stats")} />
                 <PixelButton label={narrow ? "PACKS·SOON" : "PACKS · SOON"} size={narrow ? 9 : undefined} disabled />
               </View>
             </View>
           </View>
         </View>
       </ScrollView>
+      {welcome && (
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>HOW TO PLAY</Text>
+            <Text style={styles.modalLine}>7 sports prompts a day. Same for everyone.</Text>
+            <Text style={styles.modalLine}>Read for 5 seconds, then you have {ANSWER_SECONDS} seconds. Wrong guesses just shake, so keep trying.</Text>
+            <Text style={styles.modalLine}>Any correct answer scores. The more obscure it is, the more it's worth:</Text>
+            <View style={{ gap: 2 }}>
+              {TIER_ORDER.map((t) => (
+                <Text key={t} style={[styles.modalLine, { color: TIERS[t].color }]}>
+                  {TIERS[t].emoji} {TIERS[t].name} · {TIERS[t].points}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.modalLine}>Points move your player up the stands, from the Backyard to the Hall of Fame. 🏆</Text>
+            <PixelButton big label="LET'S PLAY" onPress={closeWelcome} style={{ marginTop: 8 }} />
+          </View>
+        </View>
+      )}
       <Scanlines />
     </View>
   );
@@ -190,6 +223,10 @@ const styles = StyleSheet.create({
   link: { fontFamily: F.pixel, fontSize: 11, color: C.muted, letterSpacing: 3 },
   howTo: { marginTop: 14, padding: 14, borderWidth: 2, borderColor: C.dim, backgroundColor: C.panel, gap: 4 },
   howLine: { fontFamily: F.mono, fontSize: 20, color: C.text },
+  overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(4,8,20,0.82)", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 10 },
+  modal: { width: "100%", maxWidth: 460, padding: 20, borderWidth: 4, borderColor: C.border, backgroundColor: C.panel, gap: 12 },
+  modalTitle: { fontFamily: F.pixel, fontSize: 16, color: C.border, letterSpacing: 2, textAlign: "center", marginBottom: 4 },
+  modalLine: { fontFamily: F.mono, fontSize: 21, color: C.text },
   picker: { marginTop: 22, gap: 10 },
   dayRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   footer: { marginTop: 16, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 },
