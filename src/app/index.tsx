@@ -98,8 +98,8 @@ export default function Home() {
     }, [day]),
   );
 
-  const replay = UNLIMITED_PLAY && status === "done";
-  const label = replay ? "▶ PLAY AGAIN" : status === "done" ? "▶ SEE TODAY'S RESULTS" : status === "playing" ? "▶ RESUME TODAY'S GAME" : "▶ PLAY TODAY'S GAME";
+  const replay = status === "done";
+  const label = replay ? "▶ PLAY AGAIN" : status === "playing" ? "▶ RESUME TODAY'S GAME" : "▶ PLAY TODAY'S GAME";
 
   return (
     <View style={{ flex: 1, backgroundColor: C.night }}>

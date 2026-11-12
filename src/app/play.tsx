@@ -128,9 +128,10 @@ export default function Play() {
         await saveGame(g);
         router.setParams({ set: undefined });
       } else if (params.reset) {
-        // Testing: each replay moves on to the next set of 7
+        // Replay today's game. Test mode advances to the next set of 7; otherwise same daily puzzle.
         await clearGame(day);
-        g = freshGame(day, (saved?.set ?? daily) + 1);
+        const set = UNLIMITED_PLAY ? (saved?.set ?? daily) + 1 : (saved?.set ?? daily);
+        g = freshGame(day, set);
         await saveGame(g);
         router.setParams({ reset: undefined });
       } else if (saved) {
@@ -474,7 +475,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
 
           <PixelButton big label={copied ? "COPIED! ✓" : canShare ? "SHARE RESULT" : "COPY RESULT"} onPress={share} style={{ marginTop: 22 }} />
           <AppActions compact />
-          {UNLIMITED_PLAY && !game.archive && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
+          {!game.archive && <PixelButton label="▶ PLAY AGAIN" onPress={onReplay} style={{ marginTop: 12 }} />}
 
           <View style={{ marginTop: 24, gap: 12 }}>
             {game.results.map((r, i) => {
@@ -508,11 +509,11 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
             })}
           </View>
 
-          {!UNLIMITED_PLAY && !game.archive && <Text style={styles.nextGame}>NEXT GAME IN {next}</Text>}
+          {!game.archive && <Text style={styles.nextGame}>NEW PUZZLE IN {next}</Text>}
           <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
             <PixelButton label="◀ HOME" onPress={onHome} style={{ flex: 1 }} />
             <PixelButton label={game.archive ? "ARCHIVE" : "STATS"} onPress={onStats} style={{ flex: 1 }} />
-            {UNLIMITED_PLAY && <PixelButton label="PLAY AGAIN ▶" onPress={onReplay} style={{ flex: 1 }} />}
+            {!game.archive && <PixelButton label="PLAY AGAIN ▶" onPress={onReplay} style={{ flex: 1 }} />}
           </View>
         </View>
       </ScrollView>
