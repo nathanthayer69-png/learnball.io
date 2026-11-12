@@ -2,7 +2,20 @@ import type React from "react";
 import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import {
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+  type ScrollViewInstance,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppActions } from "@/components/AppActions";
 import { Climb } from "@/components/Climb";
@@ -36,6 +49,30 @@ import {
 } from "@/lib/game";
 import { deepCuts, matchAnswer, type Answer } from "@/lib/match";
 import { C, F } from "@/theme";
+
+/**
+ * Soft-keyboard coverage on mobile web (RN Web's KeyboardAvoidingView is a no-op).
+ * Uses visualViewport so the answer field stays above the keyboard / browser chrome.
+ */
+function useWebKeyboardInset() {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      setInset(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    };
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    sync();
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, []);
+  return inset;
+}
 
 const freshGame = (day: string, set: number, archive?: number): SavedGame => ({
   archive,
@@ -78,11 +115,14 @@ export default function Play() {
   const params = useLocalSearchParams<{ reset?: string; set?: string; archive?: string }>();
   const archiveN = Number(params.archive) || 0;
   const day = todayET();
+  const insets = useSafeAreaInsets();
+  const webKeyboardInset = useWebKeyboardInset();
   const [game, setGame] = useState<SavedGame | null>(null);
   const [now, setNow] = useState(Date.now());
   const [input, setInput] = useState("");
   const [choices, setChoices] = useState<Answer[] | null>(null);
   const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const submitting = useRef(false);
   const [wrong, setWrong] = useState<string[]>([]); // wrong guesses on this prompt
   const [notice, setNotice] = useState<string | null>(null);
@@ -90,6 +130,12 @@ export default function Play() {
   const [missKey, setMissKey] = useState(0);
   const lastSecond = useRef(-1);
   const { width } = useWindowDimensions();
+
+  const keepAnswerVisible = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+  }, []);
 
   const shake = useCallback(
     (message: string) => {
@@ -251,16 +297,24 @@ export default function Play() {
     if (game.phase === "read" && elapsed >= READ_SECONDS * 1000) {
       sfx.go();
       update({ ...game, phase: "answer", phaseStart: game.phaseStart + READ_SECONDS * 1000 });
-      setTimeout(() => inputRef.current?.focus(), 30);
+      setTimeout(() => {
+        inputRef.current?.focus();
+        keepAnswerVisible();
+      }, 30);
     } else if (game.phase === "answer" && elapsed >= ANSWER_SECONDS * 1000) {
       submit(input, true);
     }
-  }, [now, game, input, submit, update]);
+  }, [now, game, input, submit, update, keepAnswerVisible]);
 
   const score = game ? totalScore(game.results) : 0;
   const last = game?.results[game.results.length - 1];
   const revealing = !!last && !!game && now < game.phaseStart;
   const answeringNow = !!game && !game.done && game.phase === "answer" && !revealing;
+
+  // Mobile web: when the visual viewport shrinks under the keyboard, re-scroll the field into view.
+  useEffect(() => {
+    if (answeringNow && webKeyboardInset > 0) keepAnswerVisible();
+  }, [answeringNow, webKeyboardInset, keepAnswerVisible]);
 
   // Music: plays while you read and during reveals, goes quiet while you type
   useEffect(() => {
@@ -288,95 +342,111 @@ export default function Play() {
   const answering = game.phase === "answer";
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.night }}>
-      <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-        <View style={styles.inner}>
-          {/* Top bar */}
-          <View style={styles.topBar}>
-            <Pressable onPress={() => router.replace("/")}>
-              <Text style={styles.brand}>LEARNBALL</Text>
-            </Pressable>
-            <Text style={styles.topText}>
-              {width < 600 ? "Q" : "PROMPT "}
-              {Math.min(game.results.length + (revealing ? 0 : 1), prompts.length)}/{prompts.length}
-            </Text>
-            <Text style={styles.topText}>{score} PTS</Text>
-            <SoundToggles />
-          </View>
+    // Expo SDK 58: behavior="padding" on both platforms (Android is edge-to-edge and no longer resizes).
+    // On web, KeyboardAvoidingView is a no-op — webKeyboardInset + scroll cover that path.
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.night }} behavior="padding">
+      <View style={{ flex: 1, paddingBottom: webKeyboardInset }}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[
+            styles.page,
+            {
+              paddingTop: Math.max(24, insets.top + 8),
+              paddingBottom: Math.max(48, insets.bottom + 24),
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          <View style={styles.inner}>
+            {/* Top bar */}
+            <View style={styles.topBar}>
+              <Pressable onPress={() => router.replace("/")}>
+                <Text style={styles.brand}>LEARNBALL</Text>
+              </Pressable>
+              <Text style={styles.topText}>
+                {width < 600 ? "Q" : "PROMPT "}
+                {Math.min(game.results.length + (revealing ? 0 : 1), prompts.length)}/{prompts.length}
+              </Text>
+              <Text style={styles.topText}>{score} PTS</Text>
+              <SoundToggles />
+            </View>
 
-          <Climb score={score} height={width < 600 ? 140 : 180} missKey={missKey} onLevelUp={(l) => sfx.levelUp(l)} />
+            <Climb score={score} height={width < 600 ? 140 : 180} missKey={missKey} onLevelUp={(l) => sfx.levelUp(l)} />
 
-          {/* Prompt */}
-          <PromptCard prompt={prompt} />
+            {/* Prompt */}
+            <PromptCard prompt={prompt} />
 
-          {revealing ? (
-            <Reveal result={last} />
-          ) : (
-            <>
-              {/* Timer */}
-              <View style={styles.timerRow}>
-                <Text style={[styles.timerLabel, { color: reading ? C.muted : left < 6000 ? C.red : C.text }]}>
-                  {reading ? "GET READY…" : "ANSWER"}
-                </Text>
-                <Text style={[styles.timerLabel, { color: reading ? C.muted : left < 6000 ? C.red : C.text }]}>{Math.ceil(left / 1000)}s</Text>
-              </View>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    { width: `${(left / total) * 100}%`, backgroundColor: reading ? C.dim : left < 6000 ? C.red : C.border },
-                  ]}
-                />
-              </View>
-
-              {/* Answer box */}
-              <Animated.View
-                style={[
-                  styles.inputWrap,
-                  !answering && { opacity: 0.45 },
-                  notice && notice !== "TYPE AN ANSWER FIRST" && { borderColor: C.red },
-                  { transform: [{ translateX: shakeX }] },
-                ]}
-              >
-                <TextInput
-                  ref={inputRef}
-                  value={input}
-                  onChangeText={(t) => {
-                    setInput(t);
-                    if (notice) setNotice(null);
-                  }}
-                  editable={answering}
-                  placeholder={answering ? "type your answer…" : "locked while you read"}
-                  placeholderTextColor={C.dim}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  spellCheck={false}
-                  autoComplete="off"
-                  returnKeyType="go"
-                  onSubmitEditing={() => submit(input)}
-                  style={styles.input}
-                />
-              </Animated.View>
-
-              {notice && <Text style={styles.notice}>✕ {notice}</Text>}
-              {wrong.length > 0 && <Text style={styles.wrongList}>Tried: {wrong.join(" · ")}</Text>}
-
-              {choices ? (
-                <View style={{ marginTop: 14, gap: 10 }}>
-                  <Text style={styles.chooseText}>WHICH ONE? (CLOCK'S STILL RUNNING)</Text>
-                  {choices.map((a) => (
-                    <PixelButton key={a.name} label={a.name.toUpperCase()} onPress={() => pick(a)} />
-                  ))}
+            {revealing ? (
+              <Reveal result={last} />
+            ) : (
+              <>
+                {/* Timer */}
+                <View style={styles.timerRow}>
+                  <Text style={[styles.timerLabel, { color: reading ? C.muted : left < 6000 ? C.red : C.text }]}>
+                    {reading ? "GET READY…" : "ANSWER"}
+                  </Text>
+                  <Text style={[styles.timerLabel, { color: reading ? C.muted : left < 6000 ? C.red : C.text }]}>{Math.ceil(left / 1000)}s</Text>
                 </View>
-              ) : (
-                <PixelButton label="LOCK IT IN ▶" disabled={!answering} onPress={() => submit(input)} style={{ marginTop: 14 }} />
-              )}
-            </>
-          )}
-        </View>
-      </ScrollView>
+                <View style={styles.barTrack}>
+                  <View
+                    style={[
+                      styles.barFill,
+                      { width: `${(left / total) * 100}%`, backgroundColor: reading ? C.dim : left < 6000 ? C.red : C.border },
+                    ]}
+                  />
+                </View>
+
+                {/* Answer box */}
+                <Animated.View
+                  style={[
+                    styles.inputWrap,
+                    !answering && { opacity: 0.45 },
+                    notice && notice !== "TYPE AN ANSWER FIRST" && { borderColor: C.red },
+                    { transform: [{ translateX: shakeX }] },
+                  ]}
+                >
+                  <TextInput
+                    ref={inputRef}
+                    value={input}
+                    onChangeText={(t) => {
+                      setInput(t);
+                      if (notice) setNotice(null);
+                    }}
+                    editable={answering}
+                    placeholder={answering ? "type your answer…" : "locked while you read"}
+                    placeholderTextColor={C.dim}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    autoComplete="off"
+                    returnKeyType="go"
+                    onFocus={keepAnswerVisible}
+                    onSubmitEditing={() => submit(input)}
+                    style={styles.input}
+                  />
+                </Animated.View>
+
+                {notice && <Text style={styles.notice}>✕ {notice}</Text>}
+                {wrong.length > 0 && <Text style={styles.wrongList}>Tried: {wrong.join(" · ")}</Text>}
+
+                {choices ? (
+                  <View style={{ marginTop: 14, gap: 10 }}>
+                    <Text style={styles.chooseText}>WHICH ONE? (CLOCK'S STILL RUNNING)</Text>
+                    {choices.map((a) => (
+                      <PixelButton key={a.name} label={a.name.toUpperCase()} onPress={() => pick(a)} />
+                    ))}
+                  </View>
+                ) : (
+                  <PixelButton label="LOCK IT IN ▶" disabled={!answering} onPress={() => submit(input)} style={{ marginTop: 14 }} />
+                )}
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </View>
       <Scanlines />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -395,6 +465,7 @@ function Reveal({ result }: { result: PromptResult }) {
 }
 
 function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome: () => void; onReplay: () => void; onStats: () => void }) {
+  const insets = useSafeAreaInsets();
   const [copied, setCopied] = useState(false);
   const [rank, setRank] = useState<Rank | null>(null);
   const [reported, setReported] = useState<Record<string, boolean>>({});
@@ -445,7 +516,15 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
 
   return (
     <View style={{ flex: 1, backgroundColor: C.night }}>
-      <ScrollView contentContainerStyle={styles.page}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.page,
+          {
+            paddingTop: Math.max(24, insets.top + 8),
+            paddingBottom: Math.max(48, insets.bottom + 24),
+          },
+        ]}
+      >
         <View style={styles.inner}>
           <Text style={styles.brandCenter}>
             LEARNBALL #{gameNumber(game.day)}
