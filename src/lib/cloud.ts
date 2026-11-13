@@ -35,12 +35,14 @@ export async function getPlayer(): Promise<string> {
   }
 }
 
-async function insert(table: string, row: object, upsert = false) {
+async function insert(table: string, row: object) {
   if (!cloudEnabled) return;
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/${table}${upsert ? "?on_conflict=day,player" : ""}`, {
+    // Plain insert. A second play on the same day hits the (day, player) unique key and gets a 409,
+    // which is what we want: only the first game counts. ("ignore-duplicates" needs read access we don't grant.)
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: "POST",
-      headers: { ...headers(), Prefer: upsert ? "resolution=ignore-duplicates,return=minimal" : "return=minimal" },
+      headers: { ...headers(), Prefer: "return=minimal" },
       body: JSON.stringify(row),
       keepalive: true,
     });
@@ -64,7 +66,7 @@ export async function logGuess(g: { day: string; promptId: string; guess: string
 /** A finished game. Only the first one per player per day counts. */
 export async function submitPlay(p: { day: string; game: number; set: number; score: number; results: object[]; test?: boolean }) {
   if (p.test) return; // test replays never touch the rankings
-  insert("plays", { day: p.day, game: p.game, set_index: p.set, score: p.score, results: p.results, player: await getPlayer() }, true);
+  insert("plays", { day: p.day, game: p.game, set_index: p.set, score: p.score, results: p.results, player: await getPlayer() });
 }
 
 /** "I think this should count": a player flags their answer. */

@@ -104,6 +104,12 @@ const hit = (answer: Answer): MatchResult => ({
 export function matchAnswer(prompt: Prompt, raw: string): MatchResult {
   const input = normalize(raw);
   if (!input) return { kind: "empty" };
+  const w = words(raw);
+  if (w.length > 1 && w[w.length - 1] === "st") {
+    // "Kennesaw St" -> "Kennesaw State"
+    const asState = matchAnswer(prompt, [...w.slice(0, -1), "state"].join(" "));
+    if (asState.kind !== "miss") return asState;
+  }
   const list = answersFor(prompt);
 
   // 1. Exact full name or alias (a shared alias like "olympiastadion" asks which one)

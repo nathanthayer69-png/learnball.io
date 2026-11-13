@@ -757,7 +757,7 @@ export const MORE_PROMPTS: Prompt[] = [
         "Medinah|medinah no 3",
         "Chambers Bay",
         "Erin Hills",
-        "The Country Club|brookline|the country club brookline",
+        "The Country Club|brookline|the country club brookline|brookline country club",
         "Royal Liverpool|hoylake",
         "Royal St George's|royal st georges|sandwich",
         "Royal Lytham & St Annes|royal lytham|lytham",
