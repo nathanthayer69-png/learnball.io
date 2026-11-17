@@ -4,7 +4,10 @@ import { TIERS, type TierId } from "@/data/types";
 export const READ_SECONDS = 5;
 export const ANSWER_SECONDS = 25;
 export const REVEAL_MS = 2400;
-export const MAX_SCORE = 700;
+/** Bonus for getting something on all 7 prompts, however common. */
+export const PERFECT_BONUS = 50;
+export const PROMPTS_PER_GAME = 7;
+export const MAX_SCORE = 700 + PERFECT_BONUS;
 export const LAUNCH_DAY = "2026-11-09"; // Game #1
 
 /**
@@ -63,10 +66,10 @@ export function gameNumber(day = todayET()): number {
 // ---------- Score -> title and venue ----------
 
 export const RESULT_TITLES = [
-  { min: 500, title: "Certified Ball Knower" },
+  { min: 460, title: "Certified Ball Knower" },
   { min: 380, title: "You're a Die Hard" },
-  { min: 260, title: "You're a Film Watcher" },
-  { min: 150, title: "You're a Fan" },
+  { min: 220, title: "You're a Film Watcher" },
+  { min: 90, title: "You're a Fan" },
   { min: 0, title: "You're a Casual" },
 ];
 
@@ -78,15 +81,18 @@ export type Level = { id: string; name: string; emoji: string; start: number; en
 
 /**
  * The climb: Backyard to the Hall of Fame. Early levels come fast, the top stays special.
- * Rough targets: casual fan → High School, regular fan → College/Pros, diehard on a great day → Hall of Fame.
+ * Tuned on the first 70 real games (Nov 2026): typical game → The Pros / All-Star with 4–5 level-ups,
+ * about 1 in 7 games reaches the Hall of Fame.
  */
 export const LEVELS: Level[] = [
-  { id: "backyard", name: "Backyard", emoji: "🏡", start: 0, end: 60 },
-  { id: "highschool", name: "High School", emoji: "🏫", start: 60, end: 150 },
-  { id: "college", name: "College", emoji: "🎓", start: 150, end: 260 },
-  { id: "pros", name: "The Pros", emoji: "🏟️", start: 260, end: 380 },
-  { id: "allstar", name: "All-Star", emoji: "⭐", start: 380, end: 500 },
-  { id: "hall", name: "Hall of Fame", emoji: "🏆", start: 500, end: 701 },
+  { id: "backyard", name: "Backyard", emoji: "🏡", start: 0, end: 40 },
+  { id: "rec", name: "Rec League", emoji: "🧢", start: 40, end: 90 },
+  { id: "highschool", name: "High School", emoji: "🏫", start: 90, end: 150 },
+  { id: "college", name: "College", emoji: "🎓", start: 150, end: 220 },
+  { id: "pros", name: "The Pros", emoji: "🏟️", start: 220, end: 300 },
+  { id: "allstar", name: "All-Star", emoji: "⭐", start: 300, end: 380 },
+  { id: "mvp", name: "MVP", emoji: "🥇", start: 380, end: 460 },
+  { id: "hall", name: "Hall of Fame", emoji: "🏆", start: 460, end: MAX_SCORE + 1 },
 ];
 
 export function levelIndexForScore(score: number): number {
@@ -98,8 +104,13 @@ export function levelForScore(score: number): Level {
   return LEVELS[levelIndexForScore(score)];
 }
 
+/** Something on every prompt: all 7 answered, no misses or timeouts. */
+export function isPerfectGame(results: PromptResult[]) {
+  return results.length >= PROMPTS_PER_GAME && results.every((r) => r.points > 0);
+}
+
 export function totalScore(results: PromptResult[]) {
-  return results.reduce((s, r) => s + r.points, 0);
+  return results.reduce((s, r) => s + r.points, 0) + (isPerfectGame(results) ? PERFECT_BONUS : 0);
 }
 
 export function shareText(day: string, results: PromptResult[], rank?: { players: number; topPct: number } | null): string {
@@ -109,7 +120,8 @@ export function shareText(day: string, results: PromptResult[], rank?: { players
   return [
     `LearnBall #${gameNumber(day)} · ${titleForScore(score)}`,
     `${row} ${score}/${MAX_SCORE}`,
-    `Made it to ${level.id === "pros" ? "The Pros" : level.name} ${level.emoji}`,
+    `Made it to ${level.name} ${level.emoji}`,
+    ...(isPerfectGame(results) ? ["🔥 Perfect game"] : []),
     ...(rank && rank.players >= 10 ? [`Top ${rank.topPct}% today`] : []),
     "learnball.io",
   ].join("\n");

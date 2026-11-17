@@ -140,7 +140,7 @@ export default function Home() {
                     {TIERS[t].emoji} {TIERS[t].name} · {TIERS[t].points}
                   </Text>
                 ))}
-                <Text style={styles.howLine}>Every point moves your player up the stands: Backyard, High School, College, the Pros, All-Star, and finally the Hall of Fame.</Text>
+                <Text style={styles.howLine}>Every point moves your player up the stands: Backyard, Rec League, High School, College, the Pros, All-Star, MVP, and finally the Hall of Fame. Get something on all 7 for a +50 Perfect Game bonus.</Text>
               </View>
             )}
 
@@ -190,7 +190,7 @@ export default function Home() {
                 </Text>
               ))}
             </View>
-            <Text style={styles.modalLine}>Points move your player up the stands, from the Backyard to the Hall of Fame. 🏆</Text>
+            <Text style={styles.modalLine}>Points move your player up the stands, from the Backyard to the Hall of Fame. 🏆 Get something on all 7 for a +50 Perfect Game bonus. 🔥</Text>
             <PixelButton big label="LET'S PLAY" onPress={closeWelcome} style={{ marginTop: 8 }} />
           </View>
         </View>

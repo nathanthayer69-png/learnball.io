@@ -9,10 +9,10 @@ export type Tier = {
 };
 
 export const TIERS: Record<TierId, Tier> = {
-  casual: { id: "casual", name: "Casual", points: 10, emoji: "⚪", color: "#c9d1dc" },
-  fan: { id: "fan", name: "Fan", points: 30, emoji: "🔵", color: "#4da3ff" },
-  film: { id: "film", name: "Film Watcher", points: 60, emoji: "🟢", color: "#3ddc84" },
-  diehard: { id: "diehard", name: "Die Hard", points: 85, emoji: "🟠", color: "#ff9a3c" },
+  casual: { id: "casual", name: "Casual", points: 25, emoji: "⚪", color: "#c9d1dc" },
+  fan: { id: "fan", name: "Fan", points: 45, emoji: "🔵", color: "#4da3ff" },
+  film: { id: "film", name: "Film Watcher", points: 70, emoji: "🟢", color: "#3ddc84" },
+  diehard: { id: "diehard", name: "Die Hard", points: 90, emoji: "🟠", color: "#ff9a3c" },
   cbk: { id: "cbk", name: "Certified Ball Knower", points: 100, emoji: "🏆", color: "#ffd23f" },
 };
 

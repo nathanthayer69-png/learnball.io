@@ -42,6 +42,8 @@ import {
   todayET,
   dayForGame,
   totalScore,
+  isPerfectGame,
+  PERFECT_BONUS,
   levelForScore,
   levelIndexForScore,
   type PromptResult,
@@ -379,7 +381,7 @@ export default function Play() {
             <PromptCard prompt={prompt} />
 
             {revealing ? (
-              <Reveal result={last} />
+              <Reveal result={last} perfect={game.done && isPerfectGame(game.results)} />
             ) : (
               <>
                 {/* Timer */}
@@ -462,7 +464,7 @@ export default function Play() {
   );
 }
 
-function Reveal({ result }: { result: PromptResult }) {
+function Reveal({ result, perfect }: { result: PromptResult; perfect?: boolean }) {
   const tier = result.tier ? TIERS[result.tier] : null;
   const color = tier?.color ?? C.red;
   return (
@@ -472,6 +474,7 @@ function Reveal({ result }: { result: PromptResult }) {
       </Text>
       <Text style={styles.revealName}>{result.name ?? (result.input.trim() || "No answer")}</Text>
       <Text style={[styles.revealPts, { color }]}>+{result.points}</Text>
+      {perfect && <Text style={[styles.revealPts, { color: "#ffd23f", fontSize: 13, marginTop: 6 }]}>🔥 PERFECT GAME +{PERFECT_BONUS}</Text>}
     </View>
   );
 }
@@ -491,6 +494,7 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
   const level = levelForScore(score);
   const [replayKey, setReplayKey] = useState(0);
   const totals = game.results.reduce<number[]>((acc, r) => [...acc, (acc[acc.length - 1] ?? 0) + r.points], []);
+  if (isPerfectGame(game.results)) totals.push(score); // the bonus is its own last step of the replay
   useEffect(() => {
     music.setLevel(levelIndexForScore(score));
     music.setMode("results");
@@ -598,6 +602,14 @@ function Results({ game, onHome, onReplay, onStats }: { game: SavedGame; onHome:
                 </View>
               );
             })}
+            {isPerfectGame(game.results) && (
+              <View style={styles.row}>
+                <View style={styles.rowLine}>
+                  <Text style={styles.rowAnswer}>Something on all 7</Text>
+                  <Text style={[styles.rowTier, { color: "#ffd23f" }]}>🔥 Perfect Game · {PERFECT_BONUS}</Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {!game.archive && <Text style={styles.nextGame}>NEW PUZZLE IN {next}</Text>}

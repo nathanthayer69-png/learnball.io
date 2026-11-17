@@ -172,7 +172,7 @@ export const sfx = {
   /** New level reached. Hall of Fame gets the big version. */
   levelUp: (level: number) =>
     play((t) => {
-      const big = level >= 5;
+      const big = level >= 6; // MVP and Hall of Fame
       const notes = big ? [67, 72, 76, 79, 84, 88] : [67, 72, 76, 79];
       notes.forEach((n, i) => tone(midi(n), t + i * 0.09, 0.12, { vol: 0.13 }));
       const end = t + notes.length * 0.09;
@@ -287,7 +287,7 @@ export const music = {
     if (ensureQuiet()) applyMusicGain();
   },
   setLevel(l: number) {
-    level = Math.max(0, Math.min(5, l));
+    level = Math.max(0, Math.min(5, Math.round((l * 5) / 7))); // 8 climb levels onto 6 music layers
   },
 };
 

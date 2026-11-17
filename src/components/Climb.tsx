@@ -128,10 +128,12 @@ function Dots({ rows, cols, colors, top, density = 0.75 }: { rows: number; cols:
 
 const STAIRS: Record<string, [string, string]> = {
   backyard: ["#8b5a2b", "#b98048"],
+  rec: ["#9c8a6b", "#cdbb93"],
   highschool: ["#7d8899", "#c9d1dc"],
   college: ["#5c616d", "#8d929e"],
   pros: ["#22489e", "#4d7cf0"],
   allstar: ["#8f0f27", "#e0314f"],
+  mvp: ["#4b2a8a", "#9a6bff"],
 };
 
 function Scenery({ id, width }: { id: string; width: number }) {
@@ -150,6 +152,25 @@ function Scenery({ id, width }: { id: string; width: number }) {
           <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 18, backgroundColor: "#3fa34d" }} />
           {/* trash-can hoop */}
           <View style={{ position: "absolute", right: 18, bottom: 18, width: 18, height: 24, backgroundColor: "#7f8a99", borderTopWidth: 3, borderColor: "#b9c2cf" }} />
+        </>
+      );
+    case "rec":
+      // Saturday rec league: afternoon sky, chain-link fence, one set of bleachers, the snack stand
+      return (
+        <>
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#f2a65a" }} />
+          <View style={{ position: "absolute", left: 0, right: 0, top: 0, height: 50, backgroundColor: "#f7c47f" }} />
+          <View style={{ position: "absolute", left: 24, top: 18, width: 26, height: 26, backgroundColor: "#fff1b0" }} />
+          <View style={{ position: "absolute", left: 0, right: 0, top: 58, height: 46, flexDirection: "row" }}>
+            {Array.from({ length: Math.ceil(width / 10) }, (_, i) => (
+              <View key={i} style={{ width: 10, borderLeftWidth: 1, borderColor: "rgba(80,80,90,0.45)", transform: [{ skewX: i % 2 ? "20deg" : "-20deg" }] }} />
+            ))}
+          </View>
+          <View style={{ position: "absolute", left: 0, right: 0, top: 56, height: 3, backgroundColor: "#6c6f78" }} />
+          <View style={{ position: "absolute", right: 20, top: 30, width: 46, height: 30, backgroundColor: "#c8102e", borderTopWidth: 6, borderColor: "#f3f1ea", alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ fontFamily: F.pixel, fontSize: 6, color: "#f3f1ea" }}>SNACKS</Text>
+          </View>
+          <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 22, backgroundColor: "#4caf50" }} />
         </>
       );
     case "highschool":
@@ -195,6 +216,21 @@ function Scenery({ id, width }: { id: string; width: number }) {
             <View key={i} style={{ position: "absolute", left: ((i * 41) % 97) / 100 * width, top: (i * 29) % 90 + 6, width: i % 3 ? 3 : 5, height: i % 3 ? 3 : 5, backgroundColor: "#fff6c8" }} />
           ))}
           <Dots rows={2} cols={30} colors={["#f3f1ea", "#ff9ad5", "#ffd23f"]} top={100} density={0.5} />
+        </>
+      );
+    case "mvp":
+      // MVP night: purple and gold, one big spotlight, confetti, the trophy on the jumbotron
+      return (
+        <>
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#160b2e" }} />
+          <View style={{ position: "absolute", left: width / 2 - 45, top: -30, width: 90, height: 200, backgroundColor: "rgba(255,226,122,0.12)" }} />
+          <View style={{ position: "absolute", left: width / 2 - 36, top: 10, width: 72, height: 30, backgroundColor: "#0b0618", borderWidth: 3, borderColor: "#9a6bff", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(154,107,255,0.6)" }}>
+            <Text style={{ fontFamily: F.pixel, fontSize: 9, color: "#ffd23f" }}>MVP</Text>
+          </View>
+          {Array.from({ length: 22 }, (_, i) => (
+            <View key={i} style={{ position: "absolute", left: ((i * 37) % 97) / 100 * width, top: (i * 23) % 120 + 4, width: 4, height: 6, backgroundColor: ["#ffd23f", "#9a6bff", "#f3f1ea", "#ff9ad5"][i % 4], transform: [{ rotate: `${(i * 40) % 90}deg` }] }} />
+          ))}
+          <Dots rows={3} cols={30} colors={["#ffd23f", "#9a6bff", "#f3f1ea"]} top={50} density={0.85} />
         </>
       );
     case "hall":
@@ -306,7 +342,7 @@ export const Climb = memo(function Climb({ score, height, missKey = 0, replay, c
         banner.setValue(0);
         Animated.sequence([
           Animated.spring(banner, { toValue: 1, friction: 5, tension: 120, useNativeDriver: false }),
-          Animated.delay(lv >= 5 ? 1600 : 900),
+          Animated.delay(lv >= LEVELS.length - 1 ? 1600 : 900),
           Animated.timing(banner, { toValue: 0, duration: 250, useNativeDriver: false }),
         ]).start();
         onLevelUpRef.current?.(lv);
@@ -433,8 +469,8 @@ export const Climb = memo(function Climb({ score, height, missKey = 0, replay, c
             transform: [{ scale: banner.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
           }}
         >
-          <View style={{ backgroundColor: "rgba(10,16,34,0.88)", borderWidth: 3, borderColor: bannerLevel! >= 5 ? "#ffd23f" : C.border, paddingHorizontal: 14, paddingVertical: 8, alignItems: "center", gap: 6 }}>
-            <Text style={{ fontFamily: F.pixel, fontSize: 9, color: C.green, letterSpacing: 2 }}>{bannerLevel! >= 5 ? "YOU MADE IT!" : "LEVEL UP!"}</Text>
+          <View style={{ backgroundColor: "rgba(10,16,34,0.88)", borderWidth: 3, borderColor: bannerLevel! >= LEVELS.length - 1 ? "#ffd23f" : C.border, paddingHorizontal: 14, paddingVertical: 8, alignItems: "center", gap: 6 }}>
+            <Text style={{ fontFamily: F.pixel, fontSize: 9, color: C.green, letterSpacing: 2 }}>{bannerLevel! >= LEVELS.length - 1 ? "YOU MADE IT!" : "LEVEL UP!"}</Text>
             <Text style={{ fontFamily: F.pixel, fontSize: 13, color: "#ffd23f", letterSpacing: 1 }}>
               {lv.emoji} {lv.name.toUpperCase()}
             </Text>
