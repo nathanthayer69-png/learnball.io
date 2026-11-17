@@ -235,7 +235,8 @@ export default function Play() {
 
   const submit = useCallback(
     (text: string, timedOut = false) => {
-      if (!game || game.done || game.phase !== "answer") return;
+      // Typing is live through "get ready" too; only the reveal of the last answer blocks a submit.
+      if (!game || game.done || Date.now() < game.phaseStart) return;
       const prompt = prompts[game.index];
       const r = matchAnswer(prompt, text);
       if (r.kind !== "choose" && r.kind !== "empty")
@@ -277,6 +278,7 @@ export default function Play() {
 
   const pick = (a: Answer) => {
     if (!game) return;
+    inputRef.current?.focus();
     sfx.hit(TIER_ORDER.indexOf(a.tier));
     buzz(25);
     logGuess({ day: game.day, promptId: prompts[game.index].id, guess: input, matched: a.name, tier: a.tier, test: UNLIMITED_PLAY });
@@ -339,7 +341,6 @@ export default function Play() {
   const total = (game.phase === "read" ? READ_SECONDS : ANSWER_SECONDS) * 1000;
   const left = Math.max(0, total - elapsed);
   const reading = game.phase === "read" && !revealing;
-  const answering = game.phase === "answer";
 
   return (
     // Expo SDK 58: behavior="padding" on both platforms (Android is edge-to-edge and no longer resizes).
@@ -396,12 +397,15 @@ export default function Play() {
                     ]}
                   />
                 </View>
+              </>
+            )}
 
-                {/* Answer box */}
+            {/* Answer box: always mounted and always typeable so the phone keyboard never closes mid-game */}
+            <>
                 <Animated.View
                   style={[
                     styles.inputWrap,
-                    !answering && { opacity: 0.45 },
+                    revealing && { opacity: 0.45 },
                     notice && notice !== "TYPE AN ANSWER FIRST" && { borderColor: C.red },
                     { transform: [{ translateX: shakeX }] },
                   ]}
@@ -410,27 +414,29 @@ export default function Play() {
                     ref={inputRef}
                     value={input}
                     onChangeText={(t) => {
+                      if (Date.now() < game.phaseStart) return; // reveal on screen: hold keystrokes for the next prompt
                       setInput(t);
                       if (notice) setNotice(null);
                     }}
-                    editable={answering}
-                    placeholder={answering ? "type your answer…" : "locked while you read"}
+                    placeholder={revealing ? "next question…" : "type your answer…"}
                     placeholderTextColor={C.dim}
                     autoCapitalize="words"
                     autoCorrect={false}
                     spellCheck={false}
                     autoComplete="off"
                     returnKeyType="go"
+                    submitBehavior="submit" // Enter submits but keeps focus, so the keyboard stays up
+                    blurOnSubmit={false} // react-native-web still reads this one
                     onFocus={keepAnswerVisible}
                     onSubmitEditing={() => submit(input)}
                     style={styles.input}
                   />
                 </Animated.View>
 
-                {notice && <Text style={styles.notice}>✕ {notice}</Text>}
-                {wrong.length > 0 && <Text style={styles.wrongList}>Tried: {wrong.join(" · ")}</Text>}
+                {!revealing && notice && <Text style={styles.notice}>✕ {notice}</Text>}
+                {!revealing && wrong.length > 0 && <Text style={styles.wrongList}>Tried: {wrong.join(" · ")}</Text>}
 
-                {choices ? (
+                {revealing ? null : choices ? (
                   <View style={{ marginTop: 14, gap: 10 }}>
                     <Text style={styles.chooseText}>WHICH ONE? (CLOCK'S STILL RUNNING)</Text>
                     {choices.map((a) => (
@@ -438,10 +444,16 @@ export default function Play() {
                     ))}
                   </View>
                 ) : (
-                  <PixelButton label="LOCK IT IN ▶" disabled={!answering} onPress={() => submit(input)} style={{ marginTop: 14 }} />
+                  <PixelButton
+                    label="LOCK IT IN ▶"
+                    onPress={() => {
+                      inputRef.current?.focus(); // keep the keyboard up (must happen inside the tap on iOS)
+                      submit(input);
+                    }}
+                    style={{ marginTop: 14 }}
+                  />
                 )}
-              </>
-            )}
+            </>
           </View>
         </ScrollView>
       </View>
